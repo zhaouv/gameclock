@@ -1,0 +1,68 @@
+@font-face {
+  font-family: 'Share Tech Mono';
+  src: url('../assets/ShareTechMono-Regular.ttf') format('truetype')
+}
+
+.gameclock {
+    --gameclock-border-width: .25em;
+    --gameclock-border-color: #888888;
+
+    --gameclock-background-color: #F8F8F8;
+    --gameclock-foreground-color: #5E2E0C;
+    --gameclock-display-direction: 'col';
+
+    display: inline-grid;
+    position: relative;
+    border: var(--gameclock-border-width) solid var(--gameclock-border-color);
+    color: var(--gameclock-foreground-color);
+    background-color: var(--gameclock-background-color);
+    width: fit-content;
+    height: fit-content;
+}
+
+.playerclock {
+    --playerclock-fontmono: 'Share Tech Mono';
+    --playerclock-padding: 0.5em;
+    --playerclock-border-width: .1em;
+    --playerclock-border-color: #111111;
+
+    border: var(--playerclock-border-width) solid var(--playerclock-border-color);
+    white-space: pre;
+    padding: var(--playerclock-padding);
+    font-family: var(--playerclock-fontmono), monospace;
+}
+
+.expired {
+    --playerclock-foreground-color: #FF0000;
+    --playerclock-background-color: #FFEEEE;
+
+    color: var(--playerclock-foreground-color);
+    background-color: var(--playerclock-background-color);
+}
+
+.paused {
+    --playerclock-background-color: #CCCC88;
+
+    background-color: var(--playerclock-background-color);
+
+}
+
+.running {
+    --playerclock-background-color: #BBEEFF;
+
+    background-color: var(--playerclock-background-color);
+}
+
+
+.inactive {
+    --playerclock-background-color: #CCCCCC;
+
+    background-color: var(--playerclock-background-color);
+
+}
+
+.infinitetime {
+    --playerclock-background-color: #DDFFAA;
+
+    background-color: var(--playerclock-background-color);
+}

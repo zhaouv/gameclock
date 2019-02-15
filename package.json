@@ -2,28 +2,37 @@
   "private": true,
   "name": "gameclock",
   "version": "0.0.0",
+  "main": "./src/main.js",
   "license": "MIT",
-  "scripts": {
-    "start": "if-env NODE_ENV=production && npm run -s serve || npm run -s dev",
-    "build": "preact build",
-    "serve": "preact build && preact serve",
-    "dev": "preact watch",
-    "lint": "eslint src"
-  },
-  "eslintConfig": {
-    "extends": "eslint-config-synacor"
-  },
-  "eslintIgnore": [
-    "build/*"
+  "keywords": [
+    "clock",
+    "timer",
+    "timing",
+    "go",
+    "chess",
+    "weiqi",
+    "baduk",
+    "boardgame",
+    "ui",
+    "component",
+    "preact",
+    "react"
   ],
-  "devDependencies": {
-    "eslint": "^4.5.0",
-    "eslint-config-synacor": "^1.1.0",
-    "if-env": "^1.0.0",
-    "preact-cli": "^2.0.0"
+  "peerDependencies": {
+    "preact": "^8.3.0"
   },
   "dependencies": {
-    "preact": "^8.2.1",
-    "preact-compat": "^3.17.0"
+    "classnames": "^2.2.6",
+    "grapheme-splitter": "^1.0.4",
+    "performance-now": "^2.1.0"
+  },
+  "devDependencies": {
+    "preact": "^8.3.0",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.1",
+    "set-value": "^3.0.0"
+  },
+  "scripts": {
+    "watch-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --watch"
   }
 }
