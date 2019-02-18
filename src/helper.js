@@ -2,6 +2,23 @@ const now = require("performance-now")
 const GraphemeSplitter = require('grapheme-splitter')
 const splitter = new GraphemeSplitter()
 
+exports.deepCopyIfSame = function({nstate = null, pstate = null} = {}) {
+    // returns empty object if first is null
+    if (nstate == pstate) {
+        if (nstate == null) {
+            return {}
+        } else {
+            return JSON.parse(JSON.stringify(nstate))
+        }
+    } else {
+        if (nstate == null) {
+            return {}
+        } else {
+            return nstate
+        }
+    }
+}
+
 // credit: yishn @ github
 exports.noop = () => {}
 exports.equals = function(a, b) {

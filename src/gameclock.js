@@ -11,6 +11,7 @@ class gameclock extends Component {
             activePlayers: null,
             doReset: false,
             fixedWidth: null,
+            initialTime: null,
             numMovesPerPlayer: null,
             prevPlayer: null
         }
@@ -124,17 +125,17 @@ class gameclock extends Component {
         return maxWidth
     }
 
-    getActivePlayers() {
+    getActivePlayers({nstate = this.state} = {}) {
         // deep copy for Active Players
-        return JSON.parse(JSON.stringify(this.state.activePlayers))
+        return JSON.parse(JSON.stringify(nstate.activePlayers))
     }
 
-    getNumMovesPerPlayer() {
+    getNumMovesPerPlayer({nstate = this.state} = {}) {
         // deep copy for numMovesPerPlayer
-        return JSON.parse(JSON.stringify(this.state.numMovesPerPlayer))
+        return JSON.parse(JSON.stringify(nstate.numMovesPerPlayer))
     }
 
-    getInitActivePlayers({initialTime = null, numMoves = null} = {}) {
+    getInitActivePlayers({initialTime = null, numMoves = null, nstate = this.state} = {}) {
         // Enumerate activePlayers from 1 to number of players
         let numPlayers = ((initialTime != null) && (initialTime.length > 0)) ?
             initialTime.length : 0
@@ -143,7 +144,8 @@ class gameclock extends Component {
             activePlayers = initialTime.map((k, v) => k.playerID)
 
             this.initNumMovesPerPlayer({
-                initialTime: initialTime
+                initialTime: initialTime,
+                nstate: nstate
             })
             // handle rotate player from numMoves
             // so we can change the first player pre-init
@@ -158,43 +160,38 @@ class gameclock extends Component {
             }
         } else {
             this.initNumMovesPerPlayer({
-                initialTime: initialTime
+                initialTime: initialTime,
+                nstate: nstate
             })
         }
         return activePlayers
     }
 
-    initActivePlayers({initialTime = null, numMoves = null} = {}) {
+    initActivePlayers({initialTime = null, numMoves = null, nstate = this.state} = {}) {
         if (initialTime != null && initialTime.length > 0) {
             let activePlayers = this.getInitActivePlayers({
                 initialTime: initialTime,
-                numMoves: numMoves
+                numMoves: numMoves,
+                nstate: nstate
                 })
-            this.setState({
-                activePlayers: activePlayers,
-                curPlayer: activePlayers[0],
-                prevPlayer: null
-            })
+            nstate.activePlayers = activePlayers,
+            nstate.prevPlayer = null
         } else {
-            this.setState({
-                activePlayers: null,
-                curPlayer: null
-            })
-            this.initNumMovesPerPlayer()
+            nstate.activePlayers = null
+            this.initNumMovesPerPlayer({nstate: nstate})
         }
     }
 
-    initNumMovesPerPlayer({initialTime = null} = {}) {
+    initNumMovesPerPlayer({initialTime = null, nstate = this.state} = {}) {
         // Initialize numMovesPerPlayer to 0 for each player (indexed 0)
         if (initialTime != null && initialTime.length > 0) {
-            this.setState({numMovesPerPlayer:
+            nstate.numMovesPerPlayer =
                 initialTime.reduce((acc, v) => {
                     acc[v.playerID] = 0
                     return acc
                 }, {})
-            })
         } else {
-            this.setState({numMovesPerPlayer: null})
+            nstate.numMovesPerPlayer = null
         }
     }
 
@@ -225,7 +222,7 @@ class gameclock extends Component {
             return
         }
         let prevPlayer
-        let activePlayers = this.getActivePlayers()
+        let activePlayers = this.getActivePlayers({nstate: this.state})
 
         if (activePlayers != null) {
             prevPlayer = activePlayers[0]
@@ -264,10 +261,19 @@ class gameclock extends Component {
     }
 
     componentDidMount() {
-        this.setState({fixedWidth: this.calcFixedClockWidth(this.props)})
+        let nstate = helper.deepCopyIfSame({nstate: this.state, pstate: this.state})
+        nstate.fixedWidth = this.calcFixedClockWidth(this.props)
         this.initActivePlayers({
             initialTime: this.props.initialTime,
-            numMoves: this.props.numMoves
+            numMoves: this.props.numMoves,
+            nstate: nstate
+        })
+        this.setState({
+            activePlayers: nstate.activePlayers,
+            fixedWidth: nstate.fixedWidth,
+            initialTime: nstate.initialTime,
+            numMovesPerPlayer: nstate.numMovesPerPlayer,
+            prevPlayer: nstate.prevPlayer
         })
         this.props.handleUpdated()
     }
@@ -277,6 +283,8 @@ class gameclock extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        let nstate = this.state
+
         let initStaged = (nextProps.mode === 'init' ||
             (this.props.mode === 'init' && nextProps.mode !== 'reset'))
         let timeChanged = !helper.shallowEquals(
@@ -293,7 +301,8 @@ class gameclock extends Component {
             (nextProps.dispOnExpired !== this.props.dispOnExpired)
 
         if (timeChanged || modeChanged || dispChanged) {
-            this.setState({fixedWidth: this.calcFixedClockWidth(nextProps)})
+            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate.fixedWidth = this.calcFixedClockWidth(nextProps)
         }
 
         let didInit = false
@@ -302,19 +311,29 @@ class gameclock extends Component {
             if (preInitStage || timeChanged || madeMove) {
                 let numPlayers = nextProps.initialTime != null ?
                     nextProps.initialTime.length : null
+                nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                nstate.initialTime = nextProps.initialTime
                 this.initActivePlayers({
-                    initialTime: nextProps.initialTime,
-                    numMoves: nextProps.numMoves
+                    initialTime: nstate.initialTime,
+                    numMoves: nextProps.numMoves,
+                    nstate: nstate
                 })
-                didInit = true
+                this.setState({
+                    activePlayers: nstate.activePlayers,
+                    fixedWidth: nstate.fixedWidth,
+                    initialTime: nstate.initialTime,
+                    numMovesPerPlayer: nstate.numMovesPerPlayer,
+                    prevPlayer: nstate.prevPlayer
+                })
+                return
             }
         }
 
         let prevPlayer
-        let activePlayers = this.getActivePlayers()
+        let activePlayers = this.getActivePlayers({nstate: nstate})
         let curPlayer = (activePlayers != null) ? activePlayers[0] : null
-        let numMovesPerPlayer = this.getNumMovesPerPlayer()
-        if (madeMove && !didInit) {
+        let numMovesPerPlayer = this.getNumMovesPerPlayer({nstate: nstate})
+        if (madeMove) {
             let prevNumMoves = this.props.numMoves != null ?
                 this.props.numMoves : 0
 
@@ -330,11 +349,10 @@ class gameclock extends Component {
                         activePlayers.push(curPlayer)
                     }
                     curPlayer = activePlayers[0]
-                    this.setState({
-                        activePlayers: activePlayers,
-                        numMovesPerPlayer: numMovesPerPlayer,
-                        prevPlayer: prevPlayer
-                    })
+                    nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                    nstate.activePlayers = activePlayers,
+                    nstate.numMovesPerPlayer = numMovesPerPlayer,
+                    nstate.prevPlayer = prevPlayer
                 }
             }
         }
@@ -345,13 +363,15 @@ class gameclock extends Component {
             // Reset time to initial time
             // Allow for changing playerID, after initial reset
             // To change playerID after reset: mode = reset, numMoves++
+            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
             if (modeChanged) {
                 // Reset players only once: further resets won't reset player
                 prevPlayer = curPlayer
                 activePlayers = nextProps.initialTime != null ?
                     this.getInitActivePlayers({
                         initialTime: nextProps.initialTime,
-                        numMoves: nextProps.numMoves
+                        numMoves: nextProps.numMoves,
+                        nstate: nstate
                     }) : null
                 curPlayer = activePlayers != null ? activePlayers[0] : null
             } else {
@@ -361,12 +381,20 @@ class gameclock extends Component {
                     }
                 }
             }
-            this.setState({
-                activePlayers: activePlayers,
-                doReset: modeChanged,
-                prevPlayer: prevPlayer
-            })
+            nstate.activePlayers = activePlayers
+            nstate.doReset = modeChanged
+            nstate.initialTime = nextProps.initialTime
+            nstate.prevPlayer = prevPlayer
         }
+
+        this.setState({
+            activePlayers: nstate.activePlayers,
+            doReset: nstate.doReset,
+            fixedWidth: nstate.fixedWidth,
+            initialTime: nstate.initialTime,
+            numMovesPerPlayer: nstate.numMovesPerPlayer,
+            prevPlayer: nstate.prevPlayer
+        })
     }
 
     render() {
@@ -458,7 +486,9 @@ class gameclock extends Component {
                     handleResumed: this.handleResumed,
                     handleUpdated: this.props.handleUpdated,
                     numMoves: ((numMovesPerPlayer != null) ?
-                        [numMovesPerPlayer[initTime.playerID]] : 0)
+                        [numMovesPerPlayer[initTime.playerID]] : 0),
+                    playerID: initTime.playerID,
+                    playerText: initTime.playerText
                 })
             )
         )
