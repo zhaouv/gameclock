@@ -32,6 +32,7 @@ class playerclock extends Component {
             elapsedPeriodMoves: null,
             elapsedPeriodTime: null,
 
+            elapsedMoveTime: null,
             elapsedTotalTime: null,
             resetPeriod: null,
             state: 'preinit'
@@ -39,10 +40,6 @@ class playerclock extends Component {
 
         this.addElapsedHybridIC = this.addElapsedHybridIC.bind(this)
         this.adjHybridIC = this.adjHybridIC.bind(this)
-        this.getHybridIC = this.getHybridIC.bind(this)
-        this.getHybridICElapsedTotalTime = this.getHybridICElapsedTotalTime.bind(this)
-        this.getHybridICResetPeriod = this.getHybridICResetPeriod.bind(this)
-        this.getHybridICState = this.getHybridICState.bind(this)
 
         // scriptable Clock Events
         this.onElapsedPeriodAndRepeatsLeft = this.onElapsedPeriodAndRepeatsLeft.bind(this)
@@ -176,14 +173,24 @@ class playerclock extends Component {
         let initPeriodTime = initTime.periodTime
 
         if (clockMode == 'absolutePerPlayer') {
-            if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
+            if (hclk.elapsedMainTime >= initMainTime) {
+                // already expired
+                expired = true
+            } else if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
                 // will use up main time
                 expired = true
-                hclk.elapsedMainTime = initMainTime
-                // force total to be exactly equal
+
+                // calculate time used to reach expire (since we can't exceed clock time)
+                let elapsedRemainder = initMainTime - hclk.elapsedMainTime
                 this.adjHybridIC({
-                    action: 'setElapsedTotalTime',
-                    arg: initMainTime,
+                    action: 'incrElapsedTotalTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsedRemainder,
                     nstate: nstate,
                     nprops: nprops
                 })
@@ -195,14 +202,19 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                hclk.elapsedMainTime += elapsed
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
             }
         } else if (clockMode == 'byo-yomi') {
-            let elapsedremainder
+            let elapsedRemainder
             let mainTimeLeft
             if (hclk.elapsedMainTime >= initMainTime) {
                 // already used up main time
-                elapsedremainder = elapsed
+                elapsedRemainder = elapsed
                 mainTimeLeft = false
             } else if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
                 // will use up main time
@@ -212,9 +224,14 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                elapsedremainder = hclk.elapsedMainTime + elapsed - initMainTime
+                elapsedRemainder = hclk.elapsedMainTime + elapsed - initMainTime
                 mainTimeLeft = false
-                hclk.elapsedMainTime = initMainTime
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: (initMainTime - hclk.elapsedMainTime),
+                    nstate: nstate,
+                    nprops: nprops
+                })
             } else {
                 // will not use up main time
                 this.adjHybridIC({
@@ -223,24 +240,29 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                elapsedremainder = 0
+                elapsedRemainder = 0
                 mainTimeLeft = true
-                hclk.elapsedMainTime += elapsed
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
             }
             if (!mainTimeLeft) {
                 let periodsRemain = initTime.numPeriods - hclk.elapsedNumPeriods
-                let elapsedPeriod = (hclk.elapsedPeriodTime + elapsedremainder >= initPeriodTime)
+                let elapsedPeriod = (hclk.elapsedPeriodTime + elapsedRemainder >= initPeriodTime)
                 if (periodsRemain > 1 && elapsedPeriod) {
                     // when we have more than one repeated period left,
                     // and at least 1 period has expired,
                     // count one period up
-                    elapsedremainder = this.onElapsedPeriodAndRepeatsLeft({
-                        elapsed: elapsedremainder,
+                    elapsedRemainder = this.onElapsedPeriodAndRepeatsLeft({
+                        elapsed: elapsedRemainder,
                         nstate: nstate,
                         nprops: nprops
                     })
                     expired = this.addElapsedHybridIC({
-                        elapsed: elapsedremainder,
+                        elapsed: elapsedRemainder,
                         madeMove: madeMove,
                         nstate: nstate,
                         nprops: nprops
@@ -258,9 +280,9 @@ class playerclock extends Component {
                     if (hclk.elapsedPeriodTime === initPeriodTime) {
                         // time expired already
                         expired = true
-                    } else if (hclk.elapsedPeriodTime + elapsedremainder >= initPeriodTime) {
+                    } else if (hclk.elapsedPeriodTime + elapsedRemainder >= initPeriodTime) {
                         this.onElapsedPeriodAndNoRepeatsLeft({
-                            elapsed: elapsedremainder,
+                            elapsed: elapsedRemainder,
                             nstate: nstate,
                             nprops: nprops
                         })
@@ -271,13 +293,13 @@ class playerclock extends Component {
                         if (madeMove) {
                             if (hclk.elapsedPeriodMoves >= initTime.periodMoves) {
                                 this.onMoveAndPeriodMovesElapsed({
-                                    elapsed: elapsedremainder,
+                                    elapsed: elapsedRemainder,
                                     nstate: nstate,
                                     nprops: nprops
                                 })
                             } else {
                                 this.onMoveAndPeriodMovesNotElapsed({
-                                    elapsed: elapsedremainder,
+                                    elapsed: elapsedRemainder,
                                     nstate: nstate,
                                     nprops: nprops
                                 })
@@ -289,13 +311,13 @@ class playerclock extends Component {
                             if (!(hclk.resetPeriod === true)) {
                                 this.adjHybridIC({
                                     action: 'incrElapsedTotalTime',
-                                    arg: elapsedremainder,
+                                    arg: elapsedRemainder,
                                     nstate: nstate,
                                     nprops: nprops
                                 })
                                 this.adjHybridIC({
                                     action: 'incrElapsedPeriodTime',
-                                    arg: elapsedremainder,
+                                    arg: elapsedRemainder,
                                     nstate: nstate,
                                     nprops: nprops
                                 })
@@ -500,6 +522,7 @@ class playerclock extends Component {
             if (hclk.state !== 'preinit') {
                 this.adjIC({action: 'reset'})
                 hclk.elapsedTotalTime = 0
+                hclk.elapsedMoveTime = 0
                 hclk.elapsedMainTime = 0
                 hclk.elapsedNumPeriods = 0
                 hclk.elapsedPeriodTime = 0
@@ -511,6 +534,7 @@ class playerclock extends Component {
         } else if (action === 'init') {
             if (this.adjIC({action: 'init'})) {
                 hclk.elapsedTotalTime = 0
+                hclk.elapsedMoveTime = 0
                 hclk.elapsedMainTime = 0
                 hclk.elapsedNumPeriods = 0
                 hclk.elapsedPeriodTime = 0
@@ -533,6 +557,11 @@ class playerclock extends Component {
                 hclk.elapsedPeriodMoves += arg
             }
             ret = true
+        } else if (action === 'incrElapsedMainTime') {
+            if (arg != null) {
+                hclk.elapsedMainTime += arg
+                ret = true
+            }
         } else if (action === 'incrElapsedPeriodTime') {
             if (arg != null) {
                 hclk.elapsedPeriodTime += arg
@@ -541,6 +570,7 @@ class playerclock extends Component {
         } else if (action === 'incrElapsedTotalTime') {
             if (arg != null) {
                 hclk.elapsedTotalTime += arg
+                hclk.elapsedMoveTime += arg
                 ret = true
             }
         } else if (action === 'resetPeriod') {
@@ -551,6 +581,9 @@ class playerclock extends Component {
             ret = true
         } else if (action === 'resetElapsedPeriodTime') {
             hclk.elapsedPeriodTime = 0
+            ret = true
+        } else if (action === 'resetElapsedMoveTime') {
+            hclk.elapsedMoveTime = 0
             ret = true
         } else if (action === 'setElapsedPeriodTime') {
             if (arg != null) {
@@ -564,23 +597,6 @@ class playerclock extends Component {
             }
         }
         return ret
-    }
-
-    getHybridIC(cstate) {
-        // deep copy for hybridIC
-        return JSON.parse(JSON.stringify(cstate.hybridInternalClock))
-    }
-
-    getHybridICElapsedTotalTime(cstate) {
-        return cstate.elapsedTotalTime
-    }
-
-    getHybridICResetPeriod(cstate) {
-        return cstate.resetPeriod
-    }
-
-    getHybridICState(cstate) {
-        return cstate.state
     }
 
     expireTimer({nstate = null, nprops = null} = {}) {
@@ -621,6 +637,11 @@ class playerclock extends Component {
         })) {
             this.pauseTimer({nstate: nstate, nprops: nprops})
             this.handleMadeMove({nstate: nstate, nprops: nprops})
+            this.adjHybridIC({
+                action: 'resetElapsedMoveTime',
+                nstate: nstate,
+                nprops: nprops
+            })
         } else {
             this.pauseTimer({nstate: nstate, nprops: nprops})
         }
@@ -785,7 +806,7 @@ class playerclock extends Component {
 
     tick({nstate = null, nprops = null} = {}) {
         if (nstate == null) {
-            nstate = helper.deepCopyIfSame({nstate: this.state, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: this.state, b: this.state})
         }
         if (nprops == null) {
             nprops = this.props
@@ -964,14 +985,14 @@ class playerclock extends Component {
         if (nprops.numMoves != prevProps.numMoves &&
             nprops.numMoves > prevProps.numMoves) {
             // update timer to reflect new move (pausing the timer)
-            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             this.madeMoveTimer({nstate: nstate, nprops: nprops})
         }
         if (nprops.doReset !== prevProps.doReset &&
             nprops.doReset === true &&
             nprops.handleReset != null &&
             nprops.initialTime != null) {
-            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             this.resetTimer({nstate: nstate, nprops: nprops})
         }
 
@@ -984,7 +1005,7 @@ class playerclock extends Component {
             )) {
             // do init on change of initial Time
             // first pause to stop clock tick
-            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             this.pauseTimer({nstate: nstate, nprops: nprops})
             this.initTimer({nstate: nstate, nprops: nprops})
         }
@@ -993,13 +1014,13 @@ class playerclock extends Component {
             if (nprops.clockActive === false) {
                 if (prevProps.clockActive) {
                     // pausing from (possible) manual gameclock pause
-                    nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                    nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                     this.pauseTimer({nstate: nstate, nprops: nprops})
                 }
             } else if (nprops.clockActive === true) {
                 if (!this.resumeTimer({nstate: nstate, nprops: nprops})) {
                     // if could not resume, try init
-                    nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                    nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                     this.initTimer({nstate: nstate, nprops: nprops})
                 }
             }

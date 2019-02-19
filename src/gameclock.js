@@ -197,19 +197,26 @@ class gameclock extends Component {
 
     handleInit({playerID = null, clock = null} = {}) {
         if (this.props.handleInit != null) {
-            this.props.handleInit({clock: clock, playerID: playerID})
+            this.props.handleInit({
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
+                playerID: playerID})
         }
     }
 
     handleMadeMove({playerID = null, clock = null} = {}) {
         if (this.props.handleMadeMove != null) {
-            this.props.handleMadeMove({clock: clock, playerID: playerID})
+            this.props.handleMadeMove({
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
+                playerID: playerID})
         }
     }
 
     handlePaused({playerID = null, clock = null} = {}) {
         if (this.props.handlePaused != null) {
-            this.props.handlePaused({clock: clock, playerID: playerID})
+            this.props.handlePaused({
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
+                playerID: playerID
+            })
         }
     }
 
@@ -238,7 +245,7 @@ class gameclock extends Component {
 
         if (this.props.handlePlayerClockExpired != null) {
             this.props.handlePlayerClockExpired({
-                clock: clock,
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
                 playerID: prevPlayer,
                 nextPlayer: activePlayers[0]
             })
@@ -250,18 +257,24 @@ class gameclock extends Component {
             doReset: false
         })
         if (this.props.handleReset != null) {
-            this.props.handleReset({clock: clock, playerID: playerID})
+            this.props.handleReset({
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
+                playerID: playerID
+            })
         }
     }
 
     handleResumed({playerID = null, clock = null} = {}) {
         if (this.props.handleResumed != null) {
-            this.props.handleResumed({clock: clock, playerID: playerID})
+            this.props.handleResumed({
+                clock: helper.deepCopyIfSame({a: clock, b: clock}),
+                playerID: playerID
+            })
         }
     }
 
     componentDidMount() {
-        let nstate = helper.deepCopyIfSame({nstate: this.state, pstate: this.state})
+        let nstate = helper.deepCopyIfSame({a: this.state, b: this.state})
         nstate.fixedWidth = this.calcFixedClockWidth(this.props)
         this.initActivePlayers({
             initialTime: this.props.initialTime,
@@ -301,7 +314,7 @@ class gameclock extends Component {
             (nextProps.dispOnExpired !== this.props.dispOnExpired)
 
         if (timeChanged || modeChanged || dispChanged) {
-            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             nstate.fixedWidth = this.calcFixedClockWidth(nextProps)
         }
 
@@ -311,7 +324,7 @@ class gameclock extends Component {
             if (preInitStage || timeChanged || madeMove) {
                 let numPlayers = nextProps.initialTime != null ?
                     nextProps.initialTime.length : null
-                nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                 nstate.initialTime = nextProps.initialTime
                 this.initActivePlayers({
                     initialTime: nstate.initialTime,
@@ -349,7 +362,7 @@ class gameclock extends Component {
                         activePlayers.push(curPlayer)
                     }
                     curPlayer = activePlayers[0]
-                    nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+                    nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                     nstate.activePlayers = activePlayers,
                     nstate.numMovesPerPlayer = numMovesPerPlayer,
                     nstate.prevPlayer = prevPlayer
@@ -363,7 +376,7 @@ class gameclock extends Component {
             // Reset time to initial time
             // Allow for changing playerID, after initial reset
             // To change playerID after reset: mode = reset, numMoves++
-            nstate = helper.deepCopyIfSame({nstate: nstate, pstate: this.state})
+            nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             if (modeChanged) {
                 // Reset players only once: further resets won't reset player
                 prevPlayer = curPlayer

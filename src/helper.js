@@ -2,19 +2,19 @@ const now = require("performance-now")
 const GraphemeSplitter = require('grapheme-splitter')
 const splitter = new GraphemeSplitter()
 
-exports.deepCopyIfSame = function({nstate = null, pstate = null} = {}) {
+exports.deepCopyIfSame = function({a = null, b = null} = {}) {
     // returns empty object if first is null
-    if (nstate == pstate) {
-        if (nstate == null) {
+    if (a == b) {
+        if (a == null) {
             return {}
         } else {
-            return JSON.parse(JSON.stringify(nstate))
+            return JSON.parse(JSON.stringify(a))
         }
     } else {
-        if (nstate == null) {
+        if (a == null) {
             return {}
         } else {
-            return nstate
+            return a
         }
     }
 }
@@ -147,7 +147,11 @@ if (!String.prototype.padEnd) {
 exports.timeToString = function(time = 0, width = null, numFSDigits = 0, lastNumSecs = false) {
     let str = ''
     if (time == Infinity || time == 'Infinity') {
-        return '\u221E'
+        str = '\u221E'
+        if (str != null && str.length < width) {
+            str = str.padStart(width, ' ')
+        }
+        return str
     }
     let timeIntSec = Math.floor(time)
     let hours = Math.floor(timeIntSec / 3600)
