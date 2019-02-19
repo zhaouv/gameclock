@@ -27,6 +27,8 @@ class gameclock extends Component {
         this.initActivePlayers = this.initActivePlayers.bind(this)
         this.initNumMovesPerPlayer = this.initNumMovesPerPlayer.bind(this)
 
+        this.handleElapsedMainTime = this.handleElapsedMainTime.bind(this)
+        this.handleElapsedPeriod = this.handleElapsedPeriod.bind(this)
         this.handleInit = this.handleInit.bind(this)
         this.handleMadeMove = this.handleMadeMove.bind(this)
         this.handlePaused = this.handlePaused.bind(this)
@@ -193,6 +195,24 @@ class gameclock extends Component {
                 }, {})
         } else {
             nstate.numMovesPerPlayer = null
+        }
+    }
+
+    handleElapsedMainTime({playerID = null, clock = null} = {}) {
+        if (this.props.handleElapsedMainTime != null) {
+            this.props.handleElapsedMainTime({
+                clock: clock,
+                playerID: playerID
+            })
+        }
+    }
+
+    handleElapsedPeriod({playerID = null, clock = null} = {}) {
+        if (this.props.handleElapsedPeriod != null) {
+            this.props.handleElapsedPeriod({
+                clock: clock,
+                playerID: playerID
+            })
         }
     }
 
@@ -535,6 +555,8 @@ class gameclock extends Component {
                     fixedWidth: fixedWidth,
                     gameClockID: gameClockID,
                     initialTime: initTime,
+                    handleElapsedMainTime: this.handleElapsedMainTime,
+                    handleElapsedPeriod: this.handleElapsedPeriod,
                     handleInit: this.handleInit,
                     handleMadeMove: this.handleMadeMove,
                     handlePaused: this.handlePaused,

@@ -268,6 +268,8 @@ class App extends Component {
         }
 
         // gameclock callbacks
+        this.handleElapsedMainTime = this.handleElapsedMainTime.bind(this)
+        this.handleElapsedPeriod = this.handleElapsedPeriod.bind(this)
         this.handleInit = this.handleInit.bind(this)
         this.handleMadeMove = this.handleMadeMove.bind(this)
         this.handlePaused = this.handlePaused.bind(this)
@@ -366,6 +368,16 @@ class App extends Component {
         this.setState(data)
     }
 
+    handleElapsedMainTime({playerID, clock} = {}) {
+        this.logEvent('P ' + playerID + ' elapsedMainTime' +
+            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+    }
+
+    handleElapsedPeriod({playerID, clock} = {}) {
+        this.logEvent('P ' + playerID + ' elapsedPeriod' +
+            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+    }
+
     handleInit({playerID, clock} = {}) {
         this.logEvent('P ' + playerID + ' init' +
             '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
@@ -388,7 +400,7 @@ class App extends Component {
 
     handleReset({playerID, clock} = {}) {
         this.logEvent('P ' + playerID + ' reset' +
-        '\n  P' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n  P' + playerID + ' clock: ' + JSON.stringify(clock))
     }
 
     handleResumed({playerID, clock} = {}) {
@@ -834,6 +846,8 @@ class App extends Component {
                     numMoves: numMoves,
                     initialTime: initialTime,
 
+                    handleElapsedMainTime: this.handleElapsedMainTime,
+                    handleElapsedPeriod: this.handleElapsedPeriod,
                     handleInit: this.handleInit,
                     handleMadeMove: this.handleMadeMove,
                     handlePaused: this.handlePaused,

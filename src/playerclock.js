@@ -63,6 +63,8 @@ class playerclock extends Component {
         this.tick = this.tick.bind(this)
 
         // callback handling
+        this.handleElapsedMainTime = this.handleElapsedMainTime.bind(this)
+        this.handleElapsedPeriod = this.handleElapsedPeriod.bind(this)
         this.handleInit = this.handleInit.bind(this)
         this.handleMadeMove = this.handleMadeMove.bind(this)
         this.handlePaused = this.handlePaused.bind(this)
@@ -176,6 +178,12 @@ class playerclock extends Component {
             if (hclk.elapsedMainTime >= initMainTime) {
                 // already expired
                 expired = true
+                this.adjHybridIC({
+                    action: 'setExpired',
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
             } else if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
                 // will use up main time
                 expired = true
@@ -194,6 +202,12 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
+                this.adjHybridIC({
+                    action: 'setExpired',
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
             } else {
                 // will not use up main time
                 this.adjHybridIC({
@@ -232,6 +246,7 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
+                this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
             } else {
                 // will not use up main time
                 this.adjHybridIC({
@@ -280,6 +295,11 @@ class playerclock extends Component {
                     if (hclk.elapsedPeriodTime === initPeriodTime) {
                         // time expired already
                         expired = true
+                        this.adjHybridIC({
+                            action: 'setExpired',
+                            nstate: nstate,
+                            nprops: nprops
+                        })
                     } else if (hclk.elapsedPeriodTime + elapsedRemainder >= initPeriodTime) {
                         this.onElapsedPeriodAndNoRepeatsLeft({
                             elapsed: elapsedRemainder,
@@ -287,6 +307,11 @@ class playerclock extends Component {
                             nprops: nprops
                         })
                         expired = true
+                        this.adjHybridIC({
+                            action: 'setExpired',
+                            nstate: nstate,
+                            nprops: nprops
+                        })
                     } else {
                         // its possible to have multiple very fast moves,
                         // faster than a chance to update the hclk, so use >=
@@ -352,6 +377,12 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })
+        this.adjHybridIC({
+            action: 'setExpired',
+            nstate: nstate,
+            nprops: nprops
+        })
+        this.handleElapsedPeriod({nstate: nstate, nprops: nprops})
     }
 
     onElapsedPeriodAndRepeatsLeft({elapsed = null, nstate = null, nprops = null}) {
@@ -381,7 +412,7 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })
-
+        this.handleElapsedPeriod({nstate: nstate, nprops: nprops})
         return elapsed
     }
 
@@ -456,7 +487,6 @@ class playerclock extends Component {
                     nprops: nprops
                 })
                 if (expired) {
-                    hclk.state = 'expired'
                     this.expireTimer({
                         nstate: nstate,
                         nprops: nprops
@@ -465,6 +495,9 @@ class playerclock extends Component {
                 // client must check state whether move was valid or not
                 ret = true
             }
+        } else if (action === 'setExpired') {
+            hclk.state = 'expired'
+            ret = true
         } else if (action === 'update') {
             // update time & check if expired
             if (hclk.state === 'running') {
@@ -477,7 +510,6 @@ class playerclock extends Component {
                             nprops: nprops
                         })
                         if (expired) {
-                            hclk.state = 'expired'
                             this.expireTimer({
                                 nstate: nstate,
                                 nprops: nprops
@@ -499,7 +531,6 @@ class playerclock extends Component {
                         })
                         hclk.resetPeriod = false
                         if (expired) {
-                            hclk.state = 'expired'
                             this.expireTimer({
                                 nstate: nstate,
                                 nprops: nprops
@@ -650,19 +681,20 @@ class playerclock extends Component {
 
     pauseTimer({nstate = null, nprops = null} = {}) {
         this.updateTimer({nstate: nstate, nprops: nprops})
+        let ret = true
         if (this.adjHybridIC({
             action: 'pause',
             nstate: nstate,
             nprops: nprops
         })) {
-            this.stopTick({nstate: nstate, nprops: nprops})
-            this.updateTimer({nstate: nstate, nprops: nprops})
-            this.handlePaused({nstate: nstate, nprops: nprops})
-            return true
+            ret = true
         } else {
-            this.updateTimer({nstate: nstate, nprops: nprops})
-            return false
+            ret = false
         }
+        this.stopTick({nstate: nstate, nprops: nprops})
+        this.updateTimer({nstate: nstate, nprops: nprops})
+        this.handlePaused({nstate: nstate, nprops: nprops})
+        return ret
     }
 
     resetTimer({nstate = null, nprops = null} = {}) {
@@ -825,6 +857,36 @@ class playerclock extends Component {
         }, this.calcTimeUntilNextWholeSecond({nstate: nstate, nprops: nprops}))
     }
 
+    handleElapsedMainTime({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
+        if (nprops != null && nprops.handleElapsedMainTime != null) {
+            nprops.handleElapsedMainTime({
+                clock: clock,
+                playerID: playerID
+            })
+        }
+    }
+
+    handleElapsedPeriod({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
+        if (nprops != null && nprops.handleElapsedPeriod != null) {
+            nprops.handleElapsedPeriod({
+                clock: clock,
+                playerID: playerID
+            })
+        }
+    }
+
     handleInit({nstate = null, nprops = null} = {}) {
         let clock = nstate != null && nstate.hybridClock != null ?
             helper.deepCopyIfSame({
@@ -832,7 +894,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handleInit != null) {
+        if (nprops != null && nprops.handleInit != null) {
             nprops.handleInit({
                 clock: clock,
                 playerID: playerID
@@ -847,7 +909,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handleMadeMove != null) {
+        if (nprops != null && nprops.handleMadeMove != null) {
             nprops.handleMadeMove({
                 clock: clock,
                 playerID: playerID
@@ -862,7 +924,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handlePaused != null) {
+        if (nprops != null && nprops.handlePaused != null) {
             nprops.handlePaused({
                 clock: clock,
                 playerID: playerID
@@ -877,7 +939,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handlePlayerClockExpired != null) {
+        if (nprops != null && nprops.handlePlayerClockExpired != null) {
             nprops.handlePlayerClockExpired({
                 clock: clock,
                 playerID: playerID
@@ -892,7 +954,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handleReset != null) {
+        if (nprops != null && nprops.handleReset != null) {
             nprops.handleReset({
                 clock: clock,
                 playerID: playerID
@@ -907,7 +969,7 @@ class playerclock extends Component {
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
-        if (nprops.handleResumed != null) {
+        if (nprops != null && nprops.handleResumed != null) {
             nprops.handleResumed({
                 clock: clock,
                 playerID: playerID
@@ -1023,6 +1085,8 @@ class playerclock extends Component {
             fixedWidth,
             gameClockID,
             initialTime,
+            handleElapsedMainTime,
+            handleElapsedPeriod,
             handleInit,
             handleMadeMove,
             handlePaused,
@@ -1054,6 +1118,8 @@ class playerclock extends Component {
         if (dispOnExpired !== nextProps.dispOnExpired) return true
         if (fixedWidth !== nextProps.fixedWidth) return true
         if (gameClockID !== nextProps.gameClockID) return true
+        if (handleElapsedMainTime !== nextProps.handleElapsedMainTime) return true
+        if (handleElapsedPeriod !== nextProps.handleElapsedPeriod) return true
         if (handleInit !== nextProps.handleInit) return true
         if (handleMadeMove !== nextProps.handleMadeMove) return true
         if (handlePaused !== nextProps.handlePaused) return true
