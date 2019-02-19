@@ -33,7 +33,6 @@ class playerclock extends Component {
             elapsedPeriodTime: null,
 
             elapsedTotalTime: null,
-            periods: null,
             resetPeriod: null,
             state: 'preinit'
         }
@@ -42,7 +41,6 @@ class playerclock extends Component {
         this.adjHybridIC = this.adjHybridIC.bind(this)
         this.getHybridIC = this.getHybridIC.bind(this)
         this.getHybridICElapsedTotalTime = this.getHybridICElapsedTotalTime.bind(this)
-        this.getHybridICPeriods = this.getHybridICPeriods.bind(this)
         this.getHybridICResetPeriod = this.getHybridICResetPeriod.bind(this)
         this.getHybridICState = this.getHybridICState.bind(this)
 
@@ -575,10 +573,6 @@ class playerclock extends Component {
 
     getHybridICElapsedTotalTime(cstate) {
         return cstate.elapsedTotalTime
-    }
-
-    getHybridICPeriods(cstate) {
-        return cstate.periods
     }
 
     getHybridICResetPeriod(cstate) {
