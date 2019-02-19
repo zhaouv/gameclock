@@ -644,6 +644,7 @@ class playerclock extends Component {
             })
         } else {
             this.pauseTimer({nstate: nstate, nprops: nprops})
+            this.handleMadeMove({nstate: nstate, nprops: nprops})
         }
     }
 
@@ -825,55 +826,91 @@ class playerclock extends Component {
     }
 
     handleInit({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handleInit != null) {
             nprops.handleInit({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
 
     handleMadeMove({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handleMadeMove != null) {
             nprops.handleMadeMove({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
 
     handlePaused({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handlePaused != null) {
             nprops.handlePaused({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
 
     handlePlayerClockExpired({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handlePlayerClockExpired != null) {
             nprops.handlePlayerClockExpired({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
 
     handleReset({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handleReset != null) {
             nprops.handleReset({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
 
     handleResumed({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
         if (nprops.handleResumed != null) {
             nprops.handleResumed({
-                clock: nstate.hybridClock,
-                playerID: nprops.playerID
+                clock: clock,
+                playerID: playerID
             })
         }
     }
@@ -890,92 +927,6 @@ class playerclock extends Component {
         })
     }
 
-    componentWillUnmount() {
-        this.stopTick({nstate: this.state, nprops: this.props})
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        let {
-            hybridClock
-        } = this.state
-
-        if (hybridClock !== nextState.hybridClock) return true
-        if (hybridClock != null && nextState.hybridClock != null &&
-            !helper.shallowEquals(hybridClock, nextState.hybridClock)) {
-                return true
-        }
-
-        let {
-            clockActive,
-            clockMode,
-            dispInfoNumPeriods,
-            dispInfoPeriodMoves,
-            dispInfoPlayerText,
-            dispCountElapsedMainTime,
-            dispCountElapsedNumPeriods,
-            dispCountElapsedPeriodMoves,
-            dispCountElapsedPeriodTime,
-            dispFormatMainTimeFSNumDigits,
-            dispFormatMainTimeFSLastNumSecs,
-            dispFormatMainTimeFSUpdateInterval,
-            dispFormatPeriodTimeFSNumDigits,
-            dispFormatPeriodTimeFSLastNumSecs,
-            dispFormatPeriodTimeFSUpdateInterval,
-            dispOnExpired,
-            doReset,
-            fixedWidth,
-            gameClockID,
-            initialTime,
-            handleInit,
-            handleMadeMove,
-            handlePaused,
-            handlePlayerClockExpired,
-            handleReset,
-            handleResumed,
-            numMoves,
-            playerID,
-            playerText
-        } = this.props
-
-        if (clockActive !== nextProps.clockActive) return true
-        if (clockMode !== nextProps.clockMode) return true
-        if (doReset !== nextProps.doReset) return true
-        if (dispInfoNumPeriods !== nextProps.dispInfoNumPeriods) return true
-        if (dispInfoPeriodMoves !== nextProps.dispInfoPeriodMoves) return true
-        if (dispInfoPlayerText !== nextProps.dispInfoPlayerText) return true
-        if (dispCountElapsedMainTime !== nextProps.dispCountElapsedMainTime) return true
-        if (dispCountElapsedNumPeriods !== nextProps.dispCountElapsedNumPeriods) return true
-        if (dispCountElapsedPeriodMoves !== nextProps.dispCountElapsedPeriodMoves) return true
-        if (dispCountElapsedPeriodTime !== nextProps.dispCountElapsedPeriodTime) return true
-        if (dispFormatMainTimeFSNumDigits !== nextProps.dispFormatMainTimeFSNumDigits) return true
-        if (dispFormatMainTimeFSLastNumSecs !== nextProps.dispFormatMainTimeFSLastNumSecs) return true
-        if (dispFormatMainTimeFSUpdateInterval !== nextProps.dispFormatMainTimeFSUpdateInterval) return true
-        if (dispFormatPeriodTimeFSNumDigits !== nextProps.dispFormatPeriodTimeFSNumDigits) return true
-        if (dispFormatPeriodTimeFSLastNumSecs !== nextProps.dispFormatPeriodTimeFSLastNumSecs) return true
-        if (dispFormatPeriodTimeFSUpdateInterval !== nextProps.dispFormatPeriodTimeFSUpdateInterval) return true
-        if (dispOnExpired !== nextProps.dispOnExpired) return true
-        if (fixedWidth !== nextProps.fixedWidth) return true
-        if (gameClockID !== nextProps.gameClockID) return true
-        if (handleInit !== nextProps.handleInit) return true
-        if (handleMadeMove !== nextProps.handleMadeMove) return true
-        if (handlePaused !== nextProps.handlePaused) return true
-        if (handlePlayerClockExpired !== nextProps.handlePlayerClockExpired) return true
-        if (handleReset !== nextProps.handleReset) return true
-        if (handleResumed !== nextProps.handleResumed) return true
-        if (playerID !== nextProps.playerID) return true
-        if (playerText !== nextProps.playerText) return true
-
-        if (initialTime !== nextProps.initialTime) return true
-        if (initialTime != null && nextProps.initialTime != null &&
-            !helper.shallowEquals(initialTime, nextProps.initialTime)) {
-                return true
-        }
-
-        if (numMoves !== nextProps.numMoves) return true
-
-        return false
-    }
-
     componentDidUpdate(prevProps) {
         let nstate = this.state
         let nprops = this.props
@@ -984,10 +935,12 @@ class playerclock extends Component {
 
         if (nprops.numMoves != prevProps.numMoves &&
             nprops.numMoves > prevProps.numMoves) {
+
             // update timer to reflect new move (pausing the timer)
             nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             this.madeMoveTimer({nstate: nstate, nprops: nprops})
         }
+
         if (nprops.doReset !== prevProps.doReset &&
             nprops.doReset === true &&
             nprops.handleReset != null &&
@@ -1032,6 +985,94 @@ class playerclock extends Component {
                 hybridClock: nstate.hybridClock
             })
         }
+    }
+
+    componentWillUnmount() {
+        this.stopTick({nstate: this.state, nprops: this.props})
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        let {
+            hybridClock
+        } = this.state
+
+        if (hybridClock !== nextState.hybridClock) return true
+        if (hybridClock != null && nextState.hybridClock != null &&
+            !helper.shallowEquals(hybridClock, nextState.hybridClock)) {
+                return true
+        }
+
+        let {
+            clockActive,
+            clockMode,
+            dispInfoNumPeriods,
+            dispInfoPeriodMoves,
+            dispInfoPlayerText,
+            dispCountElapsedMainTime,
+            dispCountElapsedNumPeriods,
+            dispCountElapsedPeriodMoves,
+            dispCountElapsedPeriodTime,
+            dispFormatMainTimeFSNumDigits,
+            dispFormatMainTimeFSLastNumSecs,
+            dispFormatMainTimeFSUpdateInterval,
+            dispFormatPeriodTimeFSNumDigits,
+            dispFormatPeriodTimeFSLastNumSecs,
+            dispFormatPeriodTimeFSUpdateInterval,
+            dispOnExpired,
+            doReset,
+            fixedWidth,
+            gameClockID,
+            initialTime,
+            handleInit,
+            handleMadeMove,
+            handlePaused,
+            handlePlayerClockExpired,
+            handleReset,
+            handleResumed,
+            handleUpdated,
+            numMoves,
+            playerID,
+            playerText
+        } = this.props
+
+        if (clockActive !== nextProps.clockActive) return true
+        if (clockMode !== nextProps.clockMode) return true
+        if (doReset !== nextProps.doReset) return true
+        if (dispInfoNumPeriods !== nextProps.dispInfoNumPeriods) return true
+        if (dispInfoPeriodMoves !== nextProps.dispInfoPeriodMoves) return true
+        if (dispInfoPlayerText !== nextProps.dispInfoPlayerText) return true
+        if (dispCountElapsedMainTime !== nextProps.dispCountElapsedMainTime) return true
+        if (dispCountElapsedNumPeriods !== nextProps.dispCountElapsedNumPeriods) return true
+        if (dispCountElapsedPeriodMoves !== nextProps.dispCountElapsedPeriodMoves) return true
+        if (dispCountElapsedPeriodTime !== nextProps.dispCountElapsedPeriodTime) return true
+        if (dispFormatMainTimeFSNumDigits !== nextProps.dispFormatMainTimeFSNumDigits) return true
+        if (dispFormatMainTimeFSLastNumSecs !== nextProps.dispFormatMainTimeFSLastNumSecs) return true
+        if (dispFormatMainTimeFSUpdateInterval !== nextProps.dispFormatMainTimeFSUpdateInterval) return true
+        if (dispFormatPeriodTimeFSNumDigits !== nextProps.dispFormatPeriodTimeFSNumDigits) return true
+        if (dispFormatPeriodTimeFSLastNumSecs !== nextProps.dispFormatPeriodTimeFSLastNumSecs) return true
+        if (dispFormatPeriodTimeFSUpdateInterval !== nextProps.dispFormatPeriodTimeFSUpdateInterval) return true
+        if (dispOnExpired !== nextProps.dispOnExpired) return true
+        if (fixedWidth !== nextProps.fixedWidth) return true
+        if (gameClockID !== nextProps.gameClockID) return true
+        if (handleInit !== nextProps.handleInit) return true
+        if (handleMadeMove !== nextProps.handleMadeMove) return true
+        if (handlePaused !== nextProps.handlePaused) return true
+        if (handlePlayerClockExpired !== nextProps.handlePlayerClockExpired) return true
+        if (handleReset !== nextProps.handleReset) return true
+        if (handleResumed !== nextProps.handleResumed) return true
+        if (handleUpdated !== nextProps.handleUpdated) return true
+        if (playerID !== nextProps.playerID) return true
+        if (playerText !== nextProps.playerText) return true
+
+        if (initialTime !== nextProps.initialTime) return true
+        if (initialTime != null && nextProps.initialTime != null &&
+            !helper.shallowEquals(initialTime, nextProps.initialTime)) {
+                return true
+        }
+
+        if (numMoves !== nextProps.numMoves) return true
+
+        return false
     }
 
     render() {
