@@ -35,6 +35,7 @@ class gameclock extends Component {
         this.handlePlayerClockExpired = this.handlePlayerClockExpired.bind(this)
         this.handleReset = this.handleReset.bind(this)
         this.handleResumed = this.handleResumed.bind(this)
+        this.handleTenCount = this.handleTenCount.bind(this)
 
         this.shiftPlayerAfterMadeMove = this.shiftPlayerAfterMadeMove.bind(this)
     }
@@ -291,6 +292,15 @@ class gameclock extends Component {
     handleResumed({playerID = null, clock = null} = {}) {
         if (this.props.handleResumed != null) {
             this.props.handleResumed({
+                clock: clock,
+                playerID: playerID
+            })
+        }
+    }
+
+    handleTenCount({playerID = null, clock = null} = {}) {
+        if (this.props.handleTenCount != null) {
+            this.props.handleTenCount({
                 clock: clock,
                 playerID: playerID
             })
@@ -563,6 +573,7 @@ class gameclock extends Component {
                     handlePlayerClockExpired: this.handlePlayerClockExpired,
                     handleReset: this.handleReset,
                     handleResumed: this.handleResumed,
+                    handleTenCount: this.handleTenCount,
                     handleUpdated: this.props.handleUpdated,
                     numMoves: ((numMovesPerPlayer != null) ?
                         numMovesPerPlayer[initTime.playerID] : 0),

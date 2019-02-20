@@ -276,6 +276,7 @@ class App extends Component {
         this.handlePlayerClockExpired = this.handlePlayerClockExpired.bind(this)
         this.handleReset = this.handleReset.bind(this)
         this.handleResumed = this.handleResumed.bind(this)
+        this.handleTenCount = this.handleTenCount.bind(this)
 
         // demo callbacks
         this.logEvent = this.logEvent.bind(this)
@@ -405,6 +406,11 @@ class App extends Component {
 
     handleResumed({playerID, clock} = {}) {
         this.logEvent('P ' + playerID + ' resumed' +
+            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+    }
+
+    handleTenCount({playerID, clock} = {}) {
+        this.logEvent('P ' + playerID + ' <=10 secs left' +
             '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
     }
 
@@ -854,6 +860,7 @@ class App extends Component {
                     handlePlayerClockExpired: this.handlePlayerClockExpired,
                     handleReset: this.handleReset,
                     handleResumed: this.handleResumed,
+                    handleTenCount: this.handleTenCount,
                     handleUpdated: handleUpdated
                 })
             ),

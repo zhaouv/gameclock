@@ -27,6 +27,7 @@ class playerclock extends Component {
 
         // hybridInternalClock keeps track of the elaspsed time and clock state
         this.hybridInternalClock = {
+            didTenCount: false,
             elapsedMainTime: null,
             elapsedNumPeriods: null,
             elapsedPeriodMoves: null,
@@ -71,6 +72,7 @@ class playerclock extends Component {
         this.handlePlayerClockExpired = this.handlePlayerClockExpired.bind(this)
         this.handleReset = this.handleReset.bind(this)
         this.handleResumed = this.handleResumed.bind(this)
+        this.handleTenCount = this.handleTenCount.bind(this)
 
         this.timeoutID = null
         this.intervalID = null
@@ -218,7 +220,7 @@ class playerclock extends Component {
                 })
                 this.adjHybridIC({
                     action: 'incrElapsedMainTime',
-                    arg: elapsedRemainder,
+                    arg: elapsed,
                     nstate: nstate,
                     nprops: nprops
                 })
@@ -271,6 +273,12 @@ class playerclock extends Component {
                     // when we have more than one repeated period left,
                     // and at least 1 period has expired,
                     // count one period up
+                    this.adjHybridIC({
+                        action: 'setTenCount',
+                        arg: false,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
                     elapsedRemainder = this.onElapsedPeriodAndRepeatsLeft({
                         elapsed: elapsedRemainder,
                         nstate: nstate,
@@ -287,6 +295,12 @@ class playerclock extends Component {
                     // account for elapsed time
                     if (madeMove) {
                         this.adjHybridIC({
+                            action: 'setTenCount',
+                            arg: false,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
                             action: 'incrElapsedPeriodMoves',
                             nstate: nstate,
                             nprops: nprops
@@ -296,11 +310,23 @@ class playerclock extends Component {
                         // time expired already
                         expired = true
                         this.adjHybridIC({
+                            action: 'setTenCount',
+                            arg: false,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
                             action: 'setExpired',
                             nstate: nstate,
                             nprops: nprops
                         })
                     } else if (hclk.elapsedPeriodTime + elapsedRemainder >= initPeriodTime) {
+                        this.adjHybridIC({
+                            action: 'setTenCount',
+                            arg: false,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
                         this.onElapsedPeriodAndNoRepeatsLeft({
                             elapsed: elapsedRemainder,
                             nstate: nstate,
@@ -316,6 +342,12 @@ class playerclock extends Component {
                         // its possible to have multiple very fast moves,
                         // faster than a chance to update the hclk, so use >=
                         if (madeMove) {
+                            this.adjHybridIC({
+                                action: 'setTenCount',
+                                arg: false,
+                                nstate: nstate,
+                                nprops: nprops
+                            })
                             if (hclk.elapsedPeriodMoves >= initTime.periodMoves) {
                                 this.onMoveAndPeriodMovesElapsed({
                                     elapsed: elapsedRemainder,
@@ -346,6 +378,18 @@ class playerclock extends Component {
                                     nstate: nstate,
                                     nprops: nprops
                                 })
+                            }
+                            if ( !hclk.didTenCount &&
+                                (initPeriodTime - hclk.elapsedPeriodTime) <= 10) {
+
+                                this.adjHybridIC({
+                                    action: 'setTenCount',
+                                    arg: true,
+                                    nstate: nstate,
+                                    nprops: nprops
+                                })
+                                this.handleTenCount({
+                                    nstate: nstate, nprops: nprops})
                             }
                         }
                     }
@@ -495,6 +539,11 @@ class playerclock extends Component {
                 // client must check state whether move was valid or not
                 ret = true
             }
+        } else if (action === 'setTenCount') {
+            if (arg != null) {
+                hclk.didTenCount = arg
+                ret = true
+            }
         } else if (action === 'setExpired') {
             hclk.state = 'expired'
             ret = true
@@ -560,6 +609,7 @@ class playerclock extends Component {
                 hclk.elapsedPeriodMoves = 0
                 hclk.resetPeriod = false
                 hclk.state = 'init'
+                hclk.didTenCount = false
                 ret = true
             }
         } else if (action === 'init') {
@@ -572,6 +622,7 @@ class playerclock extends Component {
                 hclk.elapsedPeriodMoves = 0
                 hclk.resetPeriod = false
                 hclk.state = 'init'
+                hclk.didTenCount = false
                 ret = true
             }
         } else if (action === 'incrElapsedNumPeriods') {
@@ -977,6 +1028,21 @@ class playerclock extends Component {
         }
     }
 
+    handleTenCount({nstate = null, nprops = null} = {}) {
+        let clock = nstate != null && nstate.hybridClock != null ?
+            helper.deepCopyIfSame({
+                a: nstate.hybridClock, b: nstate.hybridClock
+            }) : null
+        let playerID = nprops != null && nprops.playerID != null ?
+            JSON.parse(JSON.stringify(nprops.playerID)) : null
+        if (nprops != null && nprops.handleTenCount != null) {
+            nprops.handleTenCount({
+                clock: clock,
+                playerID: playerID
+            })
+        }
+    }
+
     componentDidMount() {
         let nprops = this.props
         let nstate = {}
@@ -1093,6 +1159,7 @@ class playerclock extends Component {
             handlePlayerClockExpired,
             handleReset,
             handleResumed,
+            handleTenCount,
             handleUpdated,
             numMoves,
             playerID,
@@ -1126,6 +1193,7 @@ class playerclock extends Component {
         if (handlePlayerClockExpired !== nextProps.handlePlayerClockExpired) return true
         if (handleReset !== nextProps.handleReset) return true
         if (handleResumed !== nextProps.handleResumed) return true
+        if (handleTenCount !== nextProps.handleTenCount) return true
         if (handleUpdated !== nextProps.handleUpdated) return true
         if (playerID !== nextProps.playerID) return true
         if (playerText !== nextProps.playerText) return true
