@@ -235,6 +235,10 @@ class App extends Component {
 
         this.state = {
             // game clock props
+            adjustAction: 'setElapsedPeriodTime',
+            adjustEventID: null,
+            adjustPlayerID: 'black',
+            adjustVal: '0',
             clockMode: 'byo-yomi',
             dispInfoNumPeriods: true,
             dispInfoPeriodMoves: true,
@@ -268,6 +272,7 @@ class App extends Component {
         }
 
         // gameclock callbacks
+        this.handleAdjust = this.handleAdjust.bind(this)
         this.handleElapsedMainTime = this.handleElapsedMainTime.bind(this)
         this.handleElapsedPeriod = this.handleElapsedPeriod.bind(this)
         this.handleInit = this.handleInit.bind(this)
@@ -369,6 +374,11 @@ class App extends Component {
         this.setState(data)
     }
 
+    handleAdjust({playerID, clock, adjustEventID} = {}) {
+        this.logEvent('P ' + playerID + ' adjust (' + adjustEventID + ')' +
+            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+    }
+
     handleElapsedMainTime({playerID, clock} = {}) {
         this.logEvent('P ' + playerID + ' elapsedMainTime' +
             '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
@@ -447,7 +457,7 @@ class App extends Component {
                 let initTime = Array.from(Array(numPlayers)).map((e, i) => i)
                 initTime = initTime.map((e, i) => {
                     let o = {
-                        playerID: i + 1,
+                        playerID: String(i + 1),
                         playerText: '[' + String(i + 1) + ']',
                         mainTime: 5,
                         numPeriods: 1,
@@ -537,7 +547,12 @@ class App extends Component {
     }
 
     render() {
-        let {clockMode,
+        let {adjustAction,
+            adjustEventID,
+            adjustPlayerID,
+            adjustVal,
+
+            clockMode,
 
             dispInfoNumPeriods,
             dispInfoPeriodMoves,
@@ -813,6 +828,75 @@ class App extends Component {
                                 onInput: this.handleInputFloat
                             }))
                         )
+                    ),
+                    'Adjust Player Clock',
+                    h('div', {},
+                        h('div', {},
+                            h('label', {},
+                                'Player ID: '
+                            ),
+                            h('select', {
+                                type: 'select',
+                                onChange: this.handleOptionChange,
+                                value: 'adjustPlayerID:' + String(this.state.adjustPlayerID),
+                                },
+                                initialTime != null && initialTime.map((k,v) =>
+                                    h('option', {
+                                        value: 'adjustPlayerID:' + String(k.playerID)
+                                        }, String(k.playerID)
+                                    )
+                                )
+                            )
+                        ),
+                        h('div', {},
+                            h('label', {},
+                                'Action: '
+                            ),
+                            h('select', {
+                                type: 'select',
+                                onChange: this.handleOptionChange,
+                                value: 'adjustAction:' + this.state.adjustAction,
+                                },
+                                [
+                                    'incrElapsedMainTime',
+                                    'incrElapsedNumPeriods',
+                                    'incrElapsedPeriodMoves',
+                                    'incrElapsedPeriodTime',
+                                    'incrElapsedTotalTime',
+                                    'setElapsedMainTime',
+                                    'setElapsedNumPeriods',
+                                    'setElapsedPeriodMoves',
+                                    'setElapsedPeriodTime',
+                                    'setElapsedTotalTime'
+                                ].map((k,v) =>
+                                    h('option', {
+                                        value: 'adjustAction:' + k
+                                    }, k
+                                    )
+                                )
+                            )
+                        ),
+                        this.state.adjustAction.slice(0,5) === 'reset' ? null :
+                            h('div', {},
+                                h(InputItem, {
+                                    type: 'text',
+                                    name: 'Adjust Value',
+                                    id: 'adjustVal',
+                                    style: {width: '8em'},
+                                    value: this.state.adjustVal,
+                                    onInput: this.handleInputStr
+                                })
+                            ),
+                        h('button', {
+                            type: 'button',
+                            title: 'Adjust',
+                            onClick: evt => {
+                                this.setState((state) => ({
+                                    adjustEventID: (state.adjustEventID == null ?
+                                        0 : (state.adjustEventID + 1))
+                                }))
+                            }
+                        }, 'Adjust clock')
                     )
                 ),
                 h('br', {}),
@@ -829,6 +913,11 @@ class App extends Component {
                 h('br', {}),
                 h('br', {}),
                 this.state.numPlayers > 0 && h(gameclock, {
+                    adjustAction: adjustAction,
+                    adjustEventID: adjustEventID,
+                    adjustPlayerID: adjustPlayerID,
+                    adjustVal: adjustVal,
+
                     clockMode: clockMode,
 
                     dispInfoNumPeriods: dispInfoNumPeriods,
@@ -852,6 +941,7 @@ class App extends Component {
                     numMoves: numMoves,
                     initialTime: initialTime,
 
+                    handleAdjust: this.handleAdjust,
                     handleElapsedMainTime: this.handleElapsedMainTime,
                     handleElapsedPeriod: this.handleElapsedPeriod,
                     handleInit: this.handleInit,

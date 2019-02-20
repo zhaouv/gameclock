@@ -27,6 +27,7 @@ class gameclock extends Component {
         this.initActivePlayers = this.initActivePlayers.bind(this)
         this.initNumMovesPerPlayer = this.initNumMovesPerPlayer.bind(this)
 
+        this.handleAdjust = this.handleAdjust.bind(this)
         this.handleElapsedMainTime = this.handleElapsedMainTime.bind(this)
         this.handleElapsedPeriod = this.handleElapsedPeriod.bind(this)
         this.handleInit = this.handleInit.bind(this)
@@ -199,6 +200,57 @@ class gameclock extends Component {
         }
     }
 
+    handleAdjust({playerID = null, clock = null, adjustEventID = null, resetExpired = false} = {}) {
+        if (resetExpired) {
+            // gave back time to a clock that was expired, and is now no longer expired
+            // insert clock back into activePlayers in order of initialTime
+            // always insert after (preserve current active player)
+            this.setState((state, props) => {
+                if (state.activePlayers.indexOf(playerID) === -1) {
+                    let initTime = props.initialTime
+                    let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
+
+                    let indexOfExpiredPlayer = initTime.reduce((v, item, index, a) => {
+                        return (item.playerID === playerID ? index : v)}, -1)
+
+                    let playerBeforeIndex = indexOfExpiredPlayer - 1
+                    let playerToSearch
+                    while (playerBeforeIndex >= 0) {
+                        playerToSearch = initTime[playerBeforeIndex].playerID
+                        let playerActive = activePlayers.some((player) => {
+                            return (player === playerToSearch)})
+                        if (playerActive) {
+                            break
+                        }
+                        playerBeforeIndex--
+                    }
+
+                    let insertIndex
+                    if (playerBeforeIndex < 0) {
+                        insertIndex = initTime.length
+                    } else {
+                        insertIndex = activePlayers.reduce((v, item, index, a) => {
+                            return (item === playerToSearch ? index : v)}, initTime.length)
+                        insertIndex++
+                    }
+                    activePlayers.splice(insertIndex, 0, playerID)
+                    return {
+                        activePlayers: activePlayers
+                    }
+                } else {
+                    return {}
+                }
+            })
+        }
+        if (this.props.handleAdjust != null) {
+            this.props.handleAdjust({
+                clock: clock,
+                playerID: playerID,
+                adjustEventID: adjustEventID
+            })
+        }
+    }
+
     handleElapsedMainTime({playerID = null, clock = null} = {}) {
         if (this.props.handleElapsedMainTime != null) {
             this.props.handleElapsedMainTime({
@@ -250,7 +302,7 @@ class gameclock extends Component {
         if (this.state.activePlayers == null) {
             return
         }
-        if (this.state.activePlayers.indexOf(playerID) == -1) {
+        if (this.state.activePlayers.indexOf(playerID) === -1) {
             return
         }
         let prevPlayer
@@ -493,6 +545,10 @@ class gameclock extends Component {
         } = this.state
 
         let {
+            adjustAction = null,
+            adjustEventID = null,
+            adjustPlayerID = null,
+            adjustVal = null,
             clockMode = ['absolutePerPlayer'],
             dispInfoNumPeriods = true,
             dispInfoPeriodMoves = true,
@@ -541,6 +597,10 @@ class gameclock extends Component {
 
             hasInitTime && initialTime.map((initTime, i) =>
                 h(playerclock, {
+                    adjustAction: adjustAction,
+                    adjustEventID: adjustEventID,
+                    adjustPlayerID: adjustPlayerID,
+                    adjustVal: adjustVal,
                     clockActive: (mode === 'resume') &&
                         haveActive &&
                         haveMinActive &&
@@ -565,6 +625,7 @@ class gameclock extends Component {
                     fixedWidth: fixedWidth,
                     gameClockID: gameClockID,
                     initialTime: initTime,
+                    handleAdjust: this.handleAdjust,
                     handleElapsedMainTime: this.handleElapsedMainTime,
                     handleElapsedPeriod: this.handleElapsedPeriod,
                     handleInit: this.handleInit,
