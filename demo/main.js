@@ -991,7 +991,11 @@ class App extends Component {
                 })
             ),
 
-            h('div', {style: {display: (splitPlayerClocks ? 'none' : null)}},
+            h('div', {style: {
+                    display: (splitPlayerClocks ? 'none' : null),
+                    'margin-left': '2em'
+                    }
+                },
                 "Game Clock Demo",
                 h('br', {}),
                 h('br', {}),
@@ -1038,7 +1042,7 @@ class App extends Component {
                 })
             ),
             splitPlayerClocks !== true || initialTime == null ? null :
-                h('div', {},
+                h('div', {style: {'margin-left': '2em'}},
                     'Split Player Clocks Demo',
                     h('br', {}),
                     h('br', {}),
