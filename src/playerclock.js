@@ -1154,8 +1154,7 @@ class playerclock extends Component {
         if (nprops != null && nprops.playerID != null &&
             nstate != null && nstate.hybridClock != null &&
             nprops.adjustEventID != null && nprops.adjustPlayerID != null &&
-            nprops.adjustPlayerID === nprops.playerID &&
-            nprops.adjustEventID != prevProps.adjustEventID) {
+            nprops.adjustPlayerID === nprops.playerID) {
 
             this.madeAdjustTimer({nstate: nstate, nprops: nprops})
         }

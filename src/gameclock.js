@@ -251,6 +251,7 @@ class gameclock extends Component {
             })
         } else {
             if (this.props.handleAdjust != null) {
+                let activePlayers = this.getActivePlayers({nstate: this.state})
                 this.props.handleAdjust({
                     clock: clock,
                     playerID: playerID,

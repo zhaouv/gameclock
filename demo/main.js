@@ -1,9 +1,7 @@
 const {h, render, Component} = require('preact')
 const setByPath = require('set-value')
-
 const helper = require('../src/helper.js')
 const classnames = require('classnames')
-
 const {gameclock} = require('..')
 
 // these two functions are only needed for the SPLIT PLAYER CLOCKS dmeo
@@ -247,12 +245,12 @@ class App extends Component {
             dispCountElapsedNumPeriods: false,
             dispCountElapsedPeriodMoves: false,
             dispCountElapsedPeriodTime: false,
-            dispFormatMainTimeFSNumDigits: 2,
+            dispFormatMainTimeFSNumDigits: 1,
             dispFormatMainTimeFSLastNumSecs: 10,
-            dispFormatMainTimeFSUpdateInterval: 0.02,
-            dispFormatPeriodTimeFSNumDigits: 2,
+            dispFormatMainTimeFSUpdateInterval: 0.1,
+            dispFormatPeriodTimeFSNumDigits: 1,
             dispFormatPeriodTimeFSLastNumSecs: 10,
-            dispFormatPeriodTimeFSUpdateInterval: 0.02,
+            dispFormatPeriodTimeFSUpdateInterval: 0.1,
             dispOnExpired: 'OT',
             gameClockID: 'demo',
             mode: 'init',
@@ -260,9 +258,9 @@ class App extends Component {
             numMoves: 0,
             initialTime: [
                 {playerID: 'black', playerText: '   ',
-                    mainTime: 5, numPeriods: 1, periodTime: 4, periodMoves: 1},
+                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1},
                 {playerID: 'white', playerText: '   ',
-                    mainTime: 5, numPeriods: 1, periodTime: 4, periodMoves: 1}],
+                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1}],
 
             //demo state
             eventLog: '',
@@ -291,9 +289,57 @@ class App extends Component {
         this.handleInputStr = this.handleInputStr.bind(this)
         this.handleOptionChange = this.handleOptionChange.bind(this)
 
+        // demo helper functions
+        this.copyClipboardToState = this.copyClipboardToState.bind(this)
+        this.copyStateToClipboard = this.copyStateToClipboard.bind(this)
+
         this.renderClocks = this.renderClocks.bind(this)
 
         this.CheckBox = createTwoWayCheckBox(this)
+    }
+
+    async copyClipboardToState() {
+        try {
+            if (window.clipboardData && window.clipboardData.getData) {
+                let cliptext = clipboardData.getData("Text", text);
+                if (cliptext != null && cliptext !== '') {
+                    let newState = JSON.parse(cliptext)
+                    this.setState(newState)
+                }
+            } else if (navigator.clipboard) {
+                let cliptext = await navigator.clipboard.readText().catch(err => console.log(err))
+                if (cliptext != null && cliptext !== '') {
+                    let newState = JSON.parse(cliptext)
+                    this.setState(newState)
+                }
+            }
+        } catch (err) {
+            console.log('Could not read clipboard for copying to state', err)
+        }
+    }
+
+    // credit: Greg Lowe @ SO
+    copyStateToClipboard() {
+        let state = JSON.parse(JSON.stringify(this.state))
+        state.eventLog = ''
+        let text = JSON.stringify(state)
+        if (window.clipboardData && window.clipboardData.setData) {
+            return clipboardData.setData("Text", text);
+        } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+            var textarea = document.createElement("textarea");
+            textarea.textContent = text;
+            textarea.style.position = "fixed";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                return document.execCommand("copy");
+            } catch (ex) {
+                console.warn("Copy to clipboard failed.", ex);
+                return false;
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
     }
 
     handleInputInt(evt) {
@@ -452,17 +498,18 @@ class App extends Component {
             this.state.initialTime, prevState.initialTime)
         let gameClockIDChanged = (this.state.gameClockID != prevState.gameClockID)
         let splitPlayerClocksChanged = (this.state.splitPlayerClocks != prevState.splitPlayerClocks)
-        if (timeChanged || gameClockIDChanged) {
-            let previd = prevState.gameClockID
-            //this.forceUpdate()
-            removeOldClocks(previd)
-        }
         if (splitPlayerClocksChanged && this.state.splitPlayerClocks) {
+            if (timeChanged || gameClockIDChanged) {
+                let previd = prevState.gameClockID
+                removeOldClocks(previd)
+            }
             handleUpdated()
         }
 
         // for when we add/remove players, set defaults
-        if (this.state.numPlayers != prevState.numPlayers) {
+        if (this.state.numPlayers != prevState.numPlayers &&
+            (this.state.initialTime == null ||
+                this.state.initialTime.length != this.state.numPlayers)) {
             let numPlayers = this.state.numPlayers
             if (numPlayers && typeof(numPlayers) == 'number' && numPlayers > 0) {
                 let initTime = Array.from(Array(numPlayers)).map((e, i) => i)
@@ -471,7 +518,7 @@ class App extends Component {
                         playerID: String(i + 1),
                         playerText: '[' + String(i + 1) + ']',
                         mainTime: 5,
-                        numPeriods: 1,
+                        numPeriods: 2,
                         periodTime: 4,
                         periodMoves: 1
                     }
@@ -908,6 +955,31 @@ class App extends Component {
                                 }))
                             }
                         }, 'Adjust clock')
+                    ),
+                    'Import/Export Settings',
+                    h('div', {style: {margin: '0 0 .25em 0'}},
+
+                        h('br', {}),
+                        h('button', {
+                            type: 'button',
+                            title: '',
+                            style: {width: 'auto'},
+                            onClick: evt => {
+                                this.copyStateToClipboard()
+                            }
+                        }, 'Export state to clipboard'),
+
+                        h('br', {}),
+                        h('br', {}),
+
+                        h('button', {
+                            type: 'button',
+                            title: '',
+                            style: {width: 'auto'},
+                            onClick: evt => {
+                                this.copyClipboardToState()
+                            }
+                        }, 'Import state from clipboard')
                     )
                 ),
                 h('br', {}),
