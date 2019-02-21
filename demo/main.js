@@ -374,54 +374,65 @@ class App extends Component {
         this.setState(data)
     }
 
-    handleAdjust({playerID, clock, adjustEventID} = {}) {
+    handleAdjust({playerID, clock, adjustEventID, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' adjust (' + adjustEventID + ')' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n adjustEventID: ' + JSON.stringify(adjustEventID) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleElapsedMainTime({playerID, clock} = {}) {
+    handleElapsedMainTime({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' elapsedMainTime' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleElapsedPeriod({playerID, clock} = {}) {
+    handleElapsedPeriod({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' elapsedPeriod' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleInit({playerID, clock} = {}) {
+    handleInit({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' init' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleMadeMove({playerID, clock} = {}) {
+    handleMadeMove({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' madeMove' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handlePaused({playerID, clock} = {}) {
+    handlePaused({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' paused' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handlePlayerClockExpired({playerID, nextPlayer, clock} = {}) {
-        this.logEvent('P ' + playerID + ' time expired: nextPlayer: ' + nextPlayer +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+    handlePlayerClockExpired({playerID, clock, activePlayers} = {}) {
+        this.logEvent('P ' + playerID + ' time expired: ' +
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleReset({playerID, clock} = {}) {
+    handleReset({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' reset' +
-            '\n  P' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleResumed({playerID, clock} = {}) {
+    handleResumed({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' resumed' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
-    handleTenCount({playerID, clock} = {}) {
+    handleTenCount({playerID, clock, activePlayers} = {}) {
         this.logEvent('P ' + playerID + ' <=10 secs left' +
-            '\n  P ' + playerID + ' clock: ' + JSON.stringify(clock))
+            '\n clock: ' + JSON.stringify(clock) +
+            '\n activePlayers: ' + JSON.stringify(activePlayers))
     }
 
     logEvent(str) {
@@ -431,7 +442,7 @@ class App extends Component {
             second: '2-digit'
         })
         this.setState({
-            eventLog: ts + ' : ' + str + '\n' + this.state.eventLog
+            eventLog: ts + ' : ' + str + '\n\n' + this.state.eventLog
         })
     }
 

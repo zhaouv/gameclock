@@ -206,9 +206,10 @@ class gameclock extends Component {
             // insert clock back into activePlayers in order of initialTime
             // always insert after (preserve current active player)
             this.setState((state, props) => {
+                let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
+                let ret
                 if (state.activePlayers.indexOf(playerID) === -1) {
                     let initTime = props.initialTime
-                    let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
 
                     let indexOfExpiredPlayer = initTime.reduce((v, item, index, a) => {
                         return (item.playerID === playerID ? index : v)}, -1)
@@ -234,65 +235,84 @@ class gameclock extends Component {
                         insertIndex++
                     }
                     activePlayers.splice(insertIndex, 0, playerID)
-                    return {
-                        activePlayers: activePlayers
-                    }
+                    ret = {activePlayers: activePlayers}
                 } else {
-                    return {}
+                    ret = {}
                 }
+                if (props.handleAdjust != null) {
+                    props.handleAdjust({
+                        clock: clock,
+                        playerID: playerID,
+                        adjustEventID: adjustEventID,
+                        activePlayers: activePlayers
+                    })
+                }
+                return ret
             })
-        }
-        if (this.props.handleAdjust != null) {
-            this.props.handleAdjust({
-                clock: clock,
-                playerID: playerID,
-                adjustEventID: adjustEventID
-            })
+        } else {
+            if (this.props.handleAdjust != null) {
+                this.props.handleAdjust({
+                    clock: clock,
+                    playerID: playerID,
+                    adjustEventID: adjustEventID,
+                    activePlayers: activePlayers
+                })
+            }
         }
     }
 
     handleElapsedMainTime({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handleElapsedMainTime != null) {
             this.props.handleElapsedMainTime({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handleElapsedPeriod({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handleElapsedPeriod != null) {
             this.props.handleElapsedPeriod({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handleInit({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handleInit != null) {
             this.props.handleInit({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handleMadeMove({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         this.setState({waitMadeMove: false})
         if (this.props.handleMadeMove != null) {
             this.props.handleMadeMove({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handlePaused({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handlePaused != null) {
             this.props.handlePaused({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
@@ -324,37 +344,44 @@ class gameclock extends Component {
             this.props.handlePlayerClockExpired({
                 clock: clock,
                 playerID: JSON.parse(JSON.stringify(prevPlayer)),
-                nextPlayer: JSON.parse(JSON.stringify(activePlayers[0]))
+                nextPlayer: JSON.parse(JSON.stringify(activePlayers[0])),
+                activePlayers: JSON.parse(JSON.stringify(activePlayers))
             })
         }
     }
 
     handleReset({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         this.setState({
             doReset: false
         })
         if (this.props.handleReset != null) {
             this.props.handleReset({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handleResumed({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handleResumed != null) {
             this.props.handleResumed({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
 
     handleTenCount({playerID = null, clock = null} = {}) {
+        let activePlayers = this.getActivePlayers({nstate: this.state})
         if (this.props.handleTenCount != null) {
             this.props.handleTenCount({
                 clock: clock,
-                playerID: playerID
+                playerID: playerID,
+                activePlayers: activePlayers
             })
         }
     }
