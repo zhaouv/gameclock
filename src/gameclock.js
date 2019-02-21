@@ -473,7 +473,7 @@ class gameclock extends Component {
             (nextProps.dispFormatPeriodTimeFSNumDigits !== this.props.dispFormatPeriodTimeFSNumDigits) ||
             (nextProps.dispOnExpired !== this.props.dispOnExpired)
 
-        if (timeChanged || modeChanged || dispChanged) {
+        if (timeChanged || clockModeChanged || modeChanged || dispChanged) {
             nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             nstate.fixedWidth = this.calcFixedClockWidth(nextProps)
         }

@@ -1369,26 +1369,29 @@ class playerclock extends Component {
 
         let hybridClockHasState = hybridClock != null &&
                 hybridClock.state != null
+        let hclkState = hybridClockHasState ?
+                hybridClock.state : null
         let hasInitTime = initialTime != null
         let hasTimerInit = hasInitTime && hybridClockHasState
         let mainTimeLeft = hasTimerInit ?
                 initialTime.mainTime - hybridClock.elapsedMainTime : 0
         let hasMainTimeLeft = mainTimeLeft > 0
         let hasExpired = hasTimerInit &&
-                hybridClock.state === 'expired'
+                hclkState === 'expired'
         let hasNotExpired = hasTimerInit &&
-                hybridClock.state !== 'expired'
+                hclkState !== 'expired'
 
         let isInactive = !clockActive && hybridClockHasState && (
-                hybridClock.state === 'preinit' ||
-                hybridClock.state === 'init' ||
-                hybridClock.state === 'reset')
+                hclkState === 'preinit' ||
+                hclkState === 'init' ||
+                hclkState === 'reset')
         let isPaused = hasTimerInit && hybridClockHasState &&
                 (!clockActive && (
-                    hybridClock.state === 'running' ||
-                    hybridClock.state === 'paused'
+                    hclkState === 'running' ||
+                    hclkState === 'paused'
                     )
                 )
+
         let displayByoYomi = (clockMode === 'byo-yomi') &&
                 hasTimerInit && !hasMainTimeLeft
         let byoYomiPeriodTimeLeft = hasTimerInit ?
@@ -1415,8 +1418,6 @@ class playerclock extends Component {
             byoYomiPeriodTimeLeft == 'Infinity'
         let hasInfiniteTimeLeft = hasInfiniteMainTimeLeft ||
             hasInfinitePeriodTimeLeft == 'Infinity'
-
-        //let fixedWidthCh = (fixedWidth != null && fixedWidth > 0) ? fixedWidth + 'ch' : null
 
         let timeStr = ''
         if (dispInfoPlayerText) {
