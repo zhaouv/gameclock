@@ -11,6 +11,9 @@ class gameclock extends Component {
             activePlayers: null,
             doReset: false,
             fixedWidth: null,
+            hourglassAdjTime: null,
+            hourglassEventID: null,
+            hourglassPlayerID: null,
             initialTime: null,
             numMovesPerPlayer: null,
             prevNumMoves: null,
@@ -200,7 +203,8 @@ class gameclock extends Component {
         }
     }
 
-    handleAdjust({playerID = null, clock = null, adjustEventID = null, resetExpired = false} = {}) {
+    handleAdjust({playerID = null, clock = null, eventID = null,
+        byHourglass = false, resetExpired = false} = {}) {
         if (resetExpired) {
             // gave back time to a clock that was expired, and is now no longer expired
             // insert clock back into activePlayers in order of initialTime
@@ -239,23 +243,23 @@ class gameclock extends Component {
                 } else {
                     ret = {}
                 }
-                if (props.handleAdjust != null) {
+                if (props.handleAdjust != null && byHourglass === false) {
                     props.handleAdjust({
                         clock: clock,
                         playerID: playerID,
-                        adjustEventID: adjustEventID,
+                        adjustEventID: eventID,
                         activePlayers: activePlayers
                     })
                 }
                 return ret
             })
         } else {
-            if (this.props.handleAdjust != null) {
+            if (this.props.handleAdjust != null && byHourglass === false) {
                 let activePlayers = this.getActivePlayers({nstate: this.state})
                 this.props.handleAdjust({
                     clock: clock,
                     playerID: playerID,
-                    adjustEventID: adjustEventID,
+                    adjustEventID: eventID,
                     activePlayers: activePlayers
                 })
             }
@@ -297,7 +301,21 @@ class gameclock extends Component {
 
     handleMadeMove({playerID = null, clock = null} = {}) {
         let activePlayers = this.getActivePlayers({nstate: this.state})
-        this.setState({waitMadeMove: false})
+        this.setState((state, props) => {
+            let nstate = {waitMadeMove: false}
+            if (state != null && props.clockMode === 'hourglass') {
+                let moveTime = clock.elapsedMoveTime
+                if (moveTime != null && moveTime > 0 && state.activePlayers != null) {
+                    let hourglassPlayerID = JSON.parse(JSON.stringify(state.activePlayers[0]))
+                    if (hourglassPlayerID != null) {
+                        nstate.hourglassAdjTime = -moveTime
+                        nstate.hourglassPlayerID = hourglassPlayerID
+                        nstate.hourglassEventID = (state.hourglassEventID == null ?
+                            0 : (state.hourglassEventID + 1))
+                    }
+                }
+            }
+            return nstate})
         if (this.props.handleMadeMove != null) {
             this.props.handleMadeMove({
                 clock: clock,
@@ -336,10 +354,24 @@ class gameclock extends Component {
             prevPlayer = 0
         }
 
-        this.setState({
-            prevPlayer: prevPlayer,
-            activePlayers: activePlayers
-        })
+        this.setState((state, props) => {
+            let nstate = {
+                prevPlayer: prevPlayer,
+                activePlayers: activePlayers
+            }
+            if (state != null && props.clockMode === 'hourglass') {
+                let moveTime = clock.elapsedMoveTime
+                if (moveTime != null && moveTime > 0 && activePlayers != null) {
+                    let hourglassPlayerID = JSON.parse(JSON.stringify(activePlayers[0]))
+                    if (hourglassPlayerID != null) {
+                        nstate.hourglassAdjTime = -moveTime
+                        nstate.hourglassPlayerID = hourglassPlayerID
+                        nstate.hourglassEventID = (state.hourglassEventID == null ?
+                            0 : (state.hourglassEventID + 1))
+                    }
+                }
+            }
+            return nstate})
 
         if (this.props.handlePlayerClockExpired != null) {
             this.props.handlePlayerClockExpired({
@@ -566,6 +598,9 @@ class gameclock extends Component {
             activePlayers,
             doReset,
             fixedWidth,
+            hourglassAdjTime,
+            hourglassEventID,
+            hourglassPlayerID,
             numMovesPerPlayer,
             prevNumMoves,
             prevPlayer,
@@ -664,6 +699,9 @@ class gameclock extends Component {
                     handleResumed: this.handleResumed,
                     handleTenCount: this.handleTenCount,
                     handleUpdated: this.props.handleUpdated,
+                    hourglassAdjTime: hourglassAdjTime,
+                    hourglassEventID: hourglassEventID,
+                    hourglassPlayerID: hourglassPlayerID,
                     numMoves: ((numMovesPerPlayer != null) ?
                         numMovesPerPlayer[initTime.playerID] : 0),
                     playerID: initTime.playerID,

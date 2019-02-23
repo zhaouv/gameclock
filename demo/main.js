@@ -534,7 +534,7 @@ class App extends Component {
     renderClocks() {
         let clockProps = {}
         let clockMode = this.state.clockMode
-        if (clockMode === 'absolutePerPlayer') {
+        if (clockMode === 'absolutePerPlayer' || clockMode === 'hourglass') {
             clockProps = {'mainTime': 'Main Time (sec)'}
         } else if (clockMode === 'byo-yomi') {
             clockProps = {'mainTime': 'Main Time (sec)',
@@ -756,6 +756,9 @@ class App extends Component {
                                 ), h('option', {
                                         value: 'clockMode:byo-yomi',
                                     }, 'Byo-yomi'
+                                ), h('option', {
+                                        value: 'clockMode:hourglass'
+                                    }, 'Hourglass'
                                 )
                             )
                         ),
