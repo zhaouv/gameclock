@@ -258,9 +258,9 @@ class App extends Component {
             numMoves: 0,
             initialTime: [
                 {playerID: 'black', playerText: '   ',
-                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1},
+                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1, mainMoves: 0},
                 {playerID: 'white', playerText: '   ',
-                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1}],
+                    mainTime: 5, numPeriods: 2, periodTime: 4, periodMoves: 1, mainMoves: 0}],
 
             //demo state
             eventLog: '',
@@ -346,10 +346,9 @@ class App extends Component {
         let element = evt.currentTarget
         let k = element.id
         let v = element.value
-        let valid = true
         v = parseInt(v, 10)
-        if (isNaN(v)) { valid = false }
-        if (valid && k != null) {
+        if (isNaN(v)) { v = null }
+        if (k != null) {
             let parts = k.split('.')
             if (parts.length > 1) {
                 parent = parts[0]
@@ -518,6 +517,7 @@ class App extends Component {
                         playerID: String(i + 1),
                         playerText: '[' + String(i + 1) + ']',
                         mainTime: 5,
+                        mainMoves: 0,
                         numPeriods: 2,
                         periodTime: 4,
                         periodMoves: 1
@@ -541,6 +541,14 @@ class App extends Component {
             'numPeriods': '# Periods',
             'periodTime': 'Period Time (sec)',
             'periodMoves': 'Moves/Period'}
+        } else if (clockMode === 'delay') {
+            clockProps = {'mainTime': 'Phase 1 Time (sec)',
+            'mainMoves': 'Phase 1 Moves',
+            'secondaryTime': 'Phase 2 Time (sec)',
+            'secondaryMoves': 'Phase 2 Moves',
+            'tertiaryTime': 'Phase 3 Time (sec)',
+            'tertiaryMoves': 'Phase 3 Moves',
+            'periodTime': 'Delay Time (sec)'}
         } else {
             return null
         }
@@ -756,6 +764,9 @@ class App extends Component {
                                 ), h('option', {
                                         value: 'clockMode:byo-yomi',
                                     }, 'Byo-yomi'
+                                ), h('option', {
+                                        value: 'clockMode:delay',
+                                    }, 'Delay'
                                 ), h('option', {
                                         value: 'clockMode:hourglass'
                                     }, 'Hourglass'

@@ -10,6 +10,9 @@ class gameclock extends Component {
         this.state = {
             activePlayers: null,
             doReset: false,
+            fixedNumPeriodsWidth: null,
+            fixedPeriodMovesWidth: null,
+            fixedPeriodWidth: null,
             fixedWidth: null,
             hourglassAdjTime: null,
             hourglassEventID: null,
@@ -22,6 +25,9 @@ class gameclock extends Component {
         }
 
         this.calcFixedClockWidth = this.calcFixedClockWidth.bind(this)
+        this.calcFixedNumPeriodsWidth = this.calcFixedNumPeriodsWidth.bind(this)
+        this.calcFixedPeriodMovesWidth = this.calcFixedPeriodMovesWidth.bind(this)
+        this.calcFixedPeriodWidth = this.calcFixedPeriodWidth.bind(this)
 
         this.getActivePlayers = this.getActivePlayers.bind(this)
         this.getInitActivePlayers = this.getInitActivePlayers.bind(this)
@@ -52,10 +58,12 @@ class gameclock extends Component {
             return 0
         }
 
+        let initTime = props.initialTime
+
         // calculate from all disp options, initialTime, mode
         let widthPlayer
         if (props.dispInfoPlayerText === true) {
-            let maxPlayerTextLen = props.initialTime.reduce(
+            let maxPlayerTextLen = initTime.reduce(
                 (max, t) => {
                     return (t.playerText ?
                         Math.max(max, helper.strlen(t.playerText)) :
@@ -69,9 +77,36 @@ class gameclock extends Component {
 
         let mainTimeWidth
 
+        let totalPhases = 1
+
         // calculate max main time
-        let maxMainTime = props.initialTime.reduce(
-            (max, t) => Math.max(max, t.mainTime), 0)
+        let maxMainTime = initTime.reduce(
+            (max, t) => Math.max(max, t.mainTime ? t.mainTime : 0 ), 0)
+
+        let maxSecondaryTime = initTime.reduce(
+            (max, t) => Math.max(max, t.secondaryTime ? t.secondaryTime : 0), 0)
+
+        let maxTertiaryTime = initTime.reduce(
+            (max, t) => Math.max(max, t.tertiaryTime ? t.tertiaryTime : 0), 0)
+
+        if (maxSecondaryTime > 0) {
+            totalPhases++
+        }
+        if (maxTertiaryTime > 0) {
+            totalPhases++
+        }
+
+        let clockMode = props.clockMode
+
+        if (clockMode === 'delay') {
+            maxMainTime = maxMainTime + maxSecondaryTime + maxTertiaryTime
+        } else {
+            maxMainTime = Math.max(
+                maxMainTime,
+                maxSecondaryTime,
+                maxTertiaryTime
+            )
+        }
 
         if (maxMainTime > 0) {
             if (props.dispFormatMainTimeFSNumDigits > 0) {
@@ -89,10 +124,169 @@ class gameclock extends Component {
         }
 
         let periodDispWidth = 0
-        if (props.clockMode === 'byo-yomi') {
+        if (clockMode === 'byo-yomi' ||
+            clockMode === 'delay') {
+
+            let periodWidthOnly = this.calcFixedPeriodWidth(props)
+            if (periodWidthOnly > 0) {
+                periodDispWidth += periodWidthOnly
+                if (clockMode === 'delay') {
+                    // include trailing ' + '
+                    periodDispWidth += 3
+                }
+
+                // including parenthesis and trailing space
+                let numPeriodsWidthOnly = this.calcFixedNumPeriodsWidth(props)
+                if (props.dispInfoNumPeriods === true) {
+                    // including parenthesis and trailing space
+                    periodDispWidth += 3 + numPeriodsWidthOnly
+                }
+                // usually client will set false when periodMoves is not > 1
+                let periodMovesWidthOnly = this.calcFixedPeriodMovesWidth(props)
+                if (props.dispInfoPeriodMoves === true) {
+                    // include two trailing spaces
+                    periodDispWidth += 2 + periodMovesWidthOnly
+                }
+            }
+        }
+
+        let expiredWidth = props.dispOnExpired != null ?
+            helper.strlen(String(props.dispOnExpired)): 0
+
+        // always let time be at least width 1 (for time == 0)
+        let maxWidth
+        if (clockMode == 'delay') {
+            maxWidth = widthPlayer +
+                Math.max(1, mainTimeWidth + periodDispWidth, expiredWidth)
+        } else {
+            maxWidth = widthPlayer +
+                Math.max(1, mainTimeWidth, periodDispWidth, expiredWidth)
+        }
+
+        return maxWidth
+    }
+
+    calcFixedNumPeriodsWidth(props) {
+        // calculate the max width of only the number of periods
+
+        if (props.initialTime == null || props.initialTime.length == 0) {
+            return 0
+        }
+
+        let initTime = props.initialTime
+        let clockMode = props.clockMode
+        let periodDispWidth = 0
+
+        let totalPhases = 1
+        // calculate max main time
+        let maxMainTime = initTime.reduce(
+            (max, t) => Math.max(max, t.mainTime ? t.mainTime : 0 ), 0)
+
+        let maxSecondaryTime = initTime.reduce(
+            (max, t) => Math.max(max, t.secondaryTime ? t.secondaryTime : 0), 0)
+
+        let maxTertiaryTime = initTime.reduce(
+            (max, t) => Math.max(max, t.tertiaryTime ? t.tertiaryTime : 0), 0)
+
+        if (maxSecondaryTime > 0) {
+            totalPhases++
+        }
+        if (maxTertiaryTime > 0) {
+            totalPhases++
+        }
+
+        if (clockMode === 'byo-yomi' ||
+            clockMode === 'delay') {
             // calculate max period time
-            let maxPeriodTime = props.initialTime.reduce(
-                (max, t) => Math.max(max, t.periodTime), 0)
+            let maxPeriodTime = initTime.reduce(
+                (max, t) => Math.max(max,
+                    t.periodTime ? t.periodTime : 0), 0)
+
+            if (maxPeriodTime > 0) {
+                if (props.dispInfoNumPeriods === true) {
+                    // calc max num periods / phases
+                    let maxNumPeriods
+                    if (clockMode === 'byo-yomi') {
+                        maxNumPeriods = initTime.reduce(
+                            (max, t) => Math.max(max,
+                                t.numPeriods ? t.numPeriods : 0), 0)
+                    } else if (clockMode === 'delay') {
+                        maxNumPeriods = totalPhases
+                    }
+                    periodDispWidth += helper.strlen(String(maxNumPeriods))
+                }
+            }
+        }
+        return periodDispWidth
+    }
+
+    calcFixedPeriodMovesWidth(props) {
+        // calculate the max width of only the number of periods
+
+        if (props.initialTime == null || props.initialTime.length == 0) {
+            return 0
+        }
+
+        let initTime = props.initialTime
+        let clockMode = props.clockMode
+        let periodDispWidth = 0
+
+        if (clockMode === 'byo-yomi' ||
+            clockMode === 'delay') {
+            // calculate max period time
+            let maxPeriodTime = initTime.reduce(
+                (max, t) => Math.max(max,
+                    t.periodTime ? t.periodTime : 0), 0)
+
+            if (maxPeriodTime > 0) {
+                if (props.dispInfoPeriodMoves === true) {
+                    // calc max period/phase moves
+                    let maxPeriodMoves
+                    if (clockMode === 'byo-yomi') {
+                        maxPeriodMoves = initTime.reduce(
+                            (max, t) => Math.max(max,
+                                t.periodMoves ? t.periodMoves : 0), 0)
+                    } else if (clockMode === 'delay') {
+                        // for delay, this is the moves in a phase
+                        let maxMainMoves = initTime.reduce(
+                            (max, t) => Math.max(max,
+                                t.mainMoves ? t.mainMoves : 0), 0)
+                        let maxSecondaryMoves = initTime.reduce(
+                            (max, t) => Math.max(max,
+                                t.secondaryMoves ? t.secondaryMoves : 0), 0)
+                        let maxTertiaryMoves = initTime.reduce(
+                            (max, t) => Math.max(max,
+                                t.tertiaryMoves ? t.secondaryMoves : 0), 0)
+                        maxPeriodMoves = Math.max(
+                            maxMainMoves,
+                            maxSecondaryMoves,
+                            maxTertiaryMoves)
+                    }
+                    periodDispWidth += helper.strlen(String(maxPeriodMoves))
+                }
+            }
+        }
+        return periodDispWidth
+    }
+
+    calcFixedPeriodWidth(props) {
+        // calculate the max width of only the period time
+
+        if (props.initialTime == null || props.initialTime.length == 0) {
+            return 0
+        }
+
+        let initTime = props.initialTime
+
+        let periodDispWidth = 0
+        let clockMode = props.clockMode
+        if (clockMode === 'byo-yomi' ||
+            clockMode === 'delay') {
+
+            // calculate max period time
+            let maxPeriodTime = initTime.reduce(
+                (max, t) => Math.max(max,
+                    t.periodTime ? t.periodTime : 0), 0)
 
             if (maxPeriodTime > 0) {
                 if (props.dispFormatPeriodTimeFSNumDigits > 0) {
@@ -107,33 +301,9 @@ class gameclock extends Component {
                     periodDispWidth += helper.strlen(
                         helper.timeToString(maxPeriodTime))
                 }
-
-                if (props.dispInfoNumPeriods === true) {
-                    // calc max num periods
-                    let maxNumPeriods = props.initialTime.reduce(
-                        (max, t) => Math.max(max, t.numPeriods), 0)
-                    // including parenthesis and trailing space
-                    periodDispWidth += 3 + helper.strlen(String(maxNumPeriods))
-                }
-                // usually client will set false when periodMoves = 1
-                if (props.dispInfoPeriodMoves === true) {
-                    // calc max period moves
-                    let maxPeriodMoves = props.initialTime.reduce(
-                        (max, t) => Math.max(max, t.periodMoves), 0)
-                    // include two trailing spaces
-                    periodDispWidth += 2 + helper.strlen(String(maxPeriodMoves))
-                }
             }
         }
-
-        let expiredWidth = props.dispOnExpired != null ?
-            helper.strlen(String(props.dispOnExpired)): 0
-
-        // always let time be at least width 1 (for time == 0)
-        let maxWidth = widthPlayer +
-            Math.max(1, mainTimeWidth, periodDispWidth, expiredWidth)
-
-        return maxWidth
+        return periodDispWidth
     }
 
     getActivePlayers({nstate = this.state} = {}) {
@@ -450,6 +620,9 @@ class gameclock extends Component {
 
     componentDidMount() {
         let nstate = helper.deepCopyIfSame({a: this.state, b: this.state})
+        nstate.fixedNumPeriodsWidth = this.calcFixedNumPeriodsWidth(this.props)
+        nstate.fixedPeriodMovesWidth = this.calcFixedPeriodMovesWidth(this.props)
+        nstate.fixedPeriodWidth = this.calcFixedPeriodWidth(this.props)
         nstate.fixedWidth = this.calcFixedClockWidth(this.props)
         this.initActivePlayers({
             initialTime: this.props.initialTime,
@@ -458,6 +631,9 @@ class gameclock extends Component {
         })
         this.setState({
             activePlayers: nstate.activePlayers,
+            fixedNumPeriodsWidth: nstate.fixedNumPeriodsWidth,
+            fixedPeriodMovesWidth: nstate.fixedPeriodMovesWidth,
+            fixedPeriodWidth: nstate.fixedPeriodWidth,
             fixedWidth: nstate.fixedWidth,
             initialTime: nstate.initialTime,
             numMovesPerPlayer: nstate.numMovesPerPlayer,
@@ -507,6 +683,9 @@ class gameclock extends Component {
 
         if (timeChanged || clockModeChanged || modeChanged || dispChanged) {
             nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
+            nstate.fixedNumPeriodsWidth = this.calcFixedNumPeriodsWidth(nextProps)
+            nstate.fixedPeriodMovesWidth = this.calcFixedPeriodMovesWidth(nextProps)
+            nstate.fixedPeriodWidth = this.calcFixedPeriodWidth(nextProps)
             nstate.fixedWidth = this.calcFixedClockWidth(nextProps)
         }
 
@@ -525,6 +704,9 @@ class gameclock extends Component {
                 })
                 this.setState({
                     activePlayers: nstate.activePlayers,
+                    fixedNumPeriodsWidth: nstate.fixedNumPeriodsWidth,
+                    fixedPeriodMovesWidth: nstate.fixedPeriodMovesWidth,
+                    fixedPeriodWidth: nstate.fixedPeriodWidth,
                     fixedWidth: nstate.fixedWidth,
                     initialTime: nstate.initialTime,
                     numMovesPerPlayer: nstate.numMovesPerPlayer,
@@ -584,6 +766,9 @@ class gameclock extends Component {
         this.setState({
             activePlayers: nstate.activePlayers,
             doReset: nstate.doReset,
+            fixedNumPeriodsWidth: nstate.fixedNumPeriodsWidth,
+            fixedPeriodMovesWidth: nstate.fixedPeriodMovesWidth,
+            fixedPeriodWidth: nstate.fixedPeriodWidth,
             fixedWidth: nstate.fixedWidth,
             initialTime: nstate.initialTime,
             numMovesPerPlayer: nstate.numMovesPerPlayer,
@@ -597,6 +782,9 @@ class gameclock extends Component {
         let {
             activePlayers,
             doReset,
+            fixedNumPeriodsWidth,
+            fixedPeriodMovesWidth,
+            fixedPeriodWidth,
             fixedWidth,
             hourglassAdjTime,
             hourglassEventID,
@@ -685,6 +873,9 @@ class gameclock extends Component {
                     dispFormatPeriodTimeFSUpdateInterval: dispFormatPeriodTimeFSUpdateInterval,
                     dispOnExpired: dispOnExpired,
                     doReset: doReset,
+                    fixedNumPeriodsWidth: fixedNumPeriodsWidth,
+                    fixedPeriodMovesWidth: fixedPeriodMovesWidth,
+                    fixedPeriodWidth: fixedPeriodWidth,
                     fixedWidth: fixedWidth,
                     gameClockID: gameClockID,
                     initialTime: initTime,
