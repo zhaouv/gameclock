@@ -182,8 +182,6 @@ exports.timeToString = function(time = 0, width = null, numFSDigits = 0, lastNum
         } else {
             str += ' '.repeat(1 + numFSDigits)
         }
-    } else {
-        str += ' '.repeat(1 + numFSDigits)
     }
     if (str != null && str.length < width) {
         str = str.padStart(width, ' ')
