@@ -214,6 +214,282 @@ class playerclock extends Component {
                     nprops: nprops
                 })
             }
+        } else if (clockMode === 'incrementAfter') {
+            // need to check first if expired already
+
+            let phase = hclk.elapsedNumPeriods
+            let phaseMoves = initTime.mainMoves
+            let totalPhases = 1
+            let phaseInitTime = initTime.mainTime
+            if (initTime.secondaryTime != null &&
+                initTime.secondaryTime >= 0) {
+
+                totalPhases++
+                if (phase == 1) {
+                    phaseInitTime = initTime.secondaryTime
+                    if (initTime.secondaryMoves != null &&
+                        initTime.secondaryMoves > 0) {
+
+                        phaseMoves = initTime.secondaryMoves
+                    }
+                }
+            }
+            if (initTime.tertiaryTime != null
+                && initTime.tertiaryTime >= 0) {
+
+                totalPhases++
+                if (phase == 2) {
+                    phaseInitTime = initTime.tertiaryTime
+                    if (initTime.tertiaryMoves != null &&
+                        initTime.tertiaryMoves > 0) {
+
+                        phaseMoves = initTime.tertiaryMoves
+                    }
+                }
+            }
+
+            let onLastPhase = (phase === (totalPhases - 1))
+
+            if (hclk.elapsedMainTime >= phaseInitTime) {
+                // phase time expired already
+                if (onLastPhase ||
+                    !(hclk.elapsedPeriodMoves >= phaseMoves)) {
+                    // all time used up, or min. number of moves not made
+                    this.adjHybridIC({
+                        action: 'setExpired',
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    if (!expired) {
+                        this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
+                    }
+                    expired = true
+                }
+            }
+
+            let elapsedRemainder = elapsed
+
+            while (elapsedRemainder > 0) {
+                let phase = hclk.elapsedNumPeriods
+                let phaseMoves = initTime.mainMoves
+                let totalPhases = 1
+                let phaseInitTime = initTime.mainTime
+                if (initTime.secondaryTime != null &&
+                    initTime.secondaryTime >= 0) {
+
+                    totalPhases++
+                    if (phase == 1) {
+                        phaseInitTime = initTime.secondaryTime
+                        if (initTime.secondaryMoves != null &&
+                            initTime.secondaryMoves > 0) {
+
+                            phaseMoves = initTime.secondaryMoves
+                        }
+                    }
+                }
+                if (initTime.tertiaryTime != null
+                    && initTime.tertiaryTime >= 0) {
+
+                    totalPhases++
+                    if (phase == 2) {
+                        phaseInitTime = initTime.tertiaryTime
+                        if (initTime.tertiaryMoves != null &&
+                            initTime.tertiaryMoves > 0) {
+
+                            phaseMoves = initTime.tertiaryMoves
+                        }
+                    }
+                }
+
+                let onLastPhase = (phase === (totalPhases - 1))
+
+                if (hclk.elapsedMainTime >= phaseInitTime) {
+                    // phase time expired already
+                    if (onLastPhase ||
+                        !(hclk.elapsedPeriodMoves >= phaseMoves)) {
+                        // all time used up, or min. number of moves not made
+                        this.adjHybridIC({
+                            action: 'setExpired',
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        if (!expired) {
+                            this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
+                        }
+                        expired = true
+                        break
+                    } else {
+                        // should not reach here unless by manual adjustment
+                        // advance to next phase
+                        phase++
+                        // elapsedRemainder taken care of in next loop
+                        this.adjHybridIC({
+                            action: 'setElapsedMainTime',
+                            arg: 0,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
+                            action: 'setElapsedPeriodMoves',
+                            arg: 0,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
+                            action: 'setElapsedNumPeriods',
+                            arg: phase,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                    }
+                } else if ((hclk.elapsedMainTime + elapsedRemainder) >= phaseInitTime) {
+                    let diff = (phaseInitTime - hclk.elapsedMainTime)
+                    this.adjHybridIC({
+                        action: 'incrElapsedTotalTime',
+                        arg: diff,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMainTime',
+                        arg: diff,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
+
+                    elapsedRemainder = elapsedRemainder - diff
+
+                    if (onLastPhase ||
+                        !(hclk.elapsedPeriodMoves >= phaseMoves)) {
+                        // all time used up, or min. number of moves not made
+                        expired = true
+                        this.adjHybridIC({
+                            action: 'setExpired',
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        break
+                    } else {
+                        // advance to next phase
+                        phase++
+                        // elapsedRemainder taken care of in next loop
+                        this.adjHybridIC({
+                            action: 'setElapsedMainTime',
+                            arg: 0,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
+                            action: 'setElapsedPeriodMoves',
+                            arg: 0,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
+                            action: 'setElapsedNumPeriods',
+                            arg: phase,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                    }
+                } else {
+                    // will not use up phase time
+                    this.adjHybridIC({
+                        action: 'incrElapsedTotalTime',
+                        arg: elapsedRemainder,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMainTime',
+                        arg: elapsedRemainder,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    elapsedRemainder = 0
+                }
+            }
+
+            if (!expired && madeMove && !(hclk.resetPeriod === true)) {
+                this.adjHybridIC({
+                    action: 'incrElapsedPeriodMoves',
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                let phase = hclk.elapsedNumPeriods
+                let phaseMoves = initTime.mainMoves
+                let totalPhases = 1
+                let phaseInitTime = initTime.mainTime
+                if (initTime.secondaryTime != null &&
+                    initTime.secondaryTime >= 0) {
+
+                    totalPhases++
+                    if (phase == 1) {
+                        phaseInitTime = initTime.secondaryTime
+                        if (initTime.secondaryMoves != null &&
+                            initTime.secondaryMoves > 0) {
+
+                            phaseMoves = initTime.secondaryMoves
+                        }
+                    }
+                }
+                if (initTime.tertiaryTime != null
+                    && initTime.tertiaryTime >= 0) {
+
+                    totalPhases++
+                    if (phase == 2) {
+                        phaseInitTime = initTime.tertiaryTime
+                        if (initTime.tertiaryMoves != null &&
+                            initTime.tertiaryMoves > 0) {
+
+                            phaseMoves = initTime.tertiaryMoves
+                        }
+                    }
+                }
+                if (hclk.elapsedPeriodMoves >= phaseMoves) {
+                    // advance to next phase if there is a next phase
+                    if (phase < (totalPhases - 1)) {
+                        // moved to next phase
+                        // add remaining time in phase as spillover time
+                        phase++
+                        let spilloverTime = phaseInitTime - hclk.elapsedMainTime
+                        if (spilloverTime > 0) {
+                            // add spillover as negative elapsed main time
+                            this.adjHybridIC({
+                                action: 'setElapsedMainTime',
+                                arg: (-spilloverTime),
+                                nstate: nstate,
+                                nprops: nprops
+                            })
+                        }
+                        this.adjHybridIC({
+                            action: 'setElapsedPeriodMoves',
+                            arg: 0,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                        this.adjHybridIC({
+                            action: 'setElapsedNumPeriods',
+                            arg: phase,
+                            nstate: nstate,
+                            nprops: nprops
+                        })
+                    }
+                }
+                // increment after
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: (-initPeriodTime),
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'resetPeriod',
+                    nstate: nstate,
+                    nprops: nprops
+                })
+            }
         } else if (clockMode === 'delay') {
             let elapsedRemainder = 0
             if (!(hclk.resetPeriod === true)) {
@@ -380,7 +656,6 @@ class playerclock extends Component {
                         })
                     }
                 } else if ((hclk.elapsedMainTime + elapsedRemainder) >= phaseInitTime) {
-
                     let diff = (phaseInitTime - hclk.elapsedMainTime)
                     this.adjHybridIC({
                         action: 'incrElapsedTotalTime',
@@ -391,11 +666,6 @@ class playerclock extends Component {
                     this.adjHybridIC({
                         action: 'incrElapsedMainTime',
                         arg: diff,
-                        nstate: nstate,
-                        nprops: nprops
-                    })
-                    this.adjHybridIC({
-                        action: 'setExpired',
                         nstate: nstate,
                         nprops: nprops
                     })
@@ -1098,7 +1368,9 @@ class playerclock extends Component {
                 }
                 if (clockMode === 'absolutePerPlayer' || clockMode === 'hourglass') {
                     hasTimeLeft = mainTimeLeft
-                } else if (clockMode === 'delay') {
+                } else if (clockMode === 'delay' ||
+                    clockMode === 'incrementAfter') {
+
                     let totalPhases = 1
                     let phaseInitTime = initTime.mainTime
                     if (initTime.secondaryTime != null &&
@@ -1124,7 +1396,8 @@ class playerclock extends Component {
                         mainTimeLeft = true
                     }
 
-                    if (initPeriodTime != null &&
+                    if (clockMode === 'delay' &&
+                        initPeriodTime != null &&
                         hclk.elapsedPeriodTime < initPeriodTime) {
 
                         hasTimeLeft = true
@@ -1281,6 +1554,44 @@ class playerclock extends Component {
                 timeUntilNextSecond = Math.min(timeUntilNextSecond,
                     Math.ceil(realElapsed) - realElapsed)
             }
+        } else if (clockMode === 'incrementAfter') {
+            let elapsedAtLastInterval = hclk.elapsedMainTime
+            let timeSinceLastInterval = timeNow - intervalEnd
+            let realElapsed = elapsedAtLastInterval + timeSinceLastInterval
+            if (nprops.dispFormatMainTimeFSNumDigits > 0) {
+                let updateInterval = nprops.dispFormatMainTimeFSUpdateInterval
+                if (updateInterval > 0) {
+                    let lastNumSecs = nprops.dispFormatMainTimeFSLastNumSecs
+                    if (!(lastNumSecs > 0)) {
+                        lastNumSecs = Infinity
+                    }
+
+                    let phase = hclk.elapsedNumPeriods
+                    let phaseInitTime = initTime.mainTime
+                    if (initTime.secondaryTime != null &&
+                        initTime.secondaryTime >= 0) {
+
+                        if (phase == 1) {
+                            phaseInitTime = initTime.secondaryTime
+                        }
+                    }
+                    if (initTime.tertiaryTime != null
+                        && initTime.tertiaryTime >= 0) {
+
+                        if (phase == 2) {
+                            phaseInitTime = initTime.tertiaryTime
+                        }
+                    }
+
+                    if ((phaseInitTime - realElapsed) <= lastNumSecs) {
+                        // update at steps of updateInterval
+                        let fs = realElapsed - Math.floor(realElapsed)
+                        timeUntilNextSecond = updateInterval - (fs % updateInterval)
+                    }
+                }
+            }
+            timeUntilNextSecond = Math.min(timeUntilNextSecond,
+                Math.ceil(realElapsed) - realElapsed)
         } else if (clockMode === 'delay') {
             let initPeriodTime = initTime.periodTime
             let onDelayTime
@@ -1886,15 +2197,22 @@ class playerclock extends Component {
 
         let onLastPhase = (phase === (totalPhases - 1))
         let displayDelay = false
+        let displayIncrement = false
         let delayTimeLeft = hasTimerInit ?
                 initTime.periodTime - hybridClock.elapsedPeriodTime : 0
 
-        let delayNumPhasesLeft = hasTimerInit ?
+        let numPhasesLeft = hasTimerInit ?
                 totalPhases - hybridClock.elapsedNumPeriods : 0
 
+        let hasPositiveInitPeriodTime = (hasTimerInit &&
+            initTime.periodTime != null &&
+            initTime.periodTime > 0)
 
         if (clockMode === 'delay') {
             displayDelay = true
+            mainTime = phaseInitTime
+        } else if (clockMode === 'incrementAfter') {
+            displayIncrement = true
             mainTime = phaseInitTime
         } else {
             mainTime = hasTimerInit ? initTime.mainTime : 0
@@ -1984,11 +2302,11 @@ class playerclock extends Component {
                     fixedWidth,
                     dispFormatPeriodTimeFSNumDigits,
                     onLastPeriodNumSecs)
-            } else if (displayDelay) {
+            } else if (displayIncrement) {
                 if (dispInfoNumPeriods) {
                     let periods = dispCountElapsedNumPeriods ?
                         (hybridClock.elapsedNumPeriods + 1) :
-                        (delayNumPhasesLeft - 1)
+                        (numPhasesLeft - 1)
 
                     timeStr += '(' + helper.padStart(
                         String(periods), fixedNumPeriodsWidth, ' ') + ') '
@@ -2013,14 +2331,51 @@ class playerclock extends Component {
                     hybridClock.elapsedMainTime :
                     mainTimeLeft
 
-                let periodTime = dispCountElapsedPeriodTime ?
-                    hybridClock.elapsedPeriodTime :
-                    delayTimeLeft
+                fixedWidth -= helper.strlen(timeStr)
 
-                timeStr += helper.timeToString(periodTime,
-                    fixedPeriodWidth,
-                    dispFormatPeriodTimeFSNumDigits,
-                    onLastPeriodNumSecs) + ' + '
+                timeStr += helper.timeToString(mainTime,
+                    fixedWidth,
+                    dispFormatMainTimeFSNumDigits,
+                    onLastMainNumSecs)
+            } else if (displayDelay) {
+                if (dispInfoNumPeriods) {
+                    let periods = dispCountElapsedNumPeriods ?
+                        (hybridClock.elapsedNumPeriods + 1) :
+                        (numPhasesLeft - 1)
+
+                    timeStr += '(' + helper.padStart(
+                        String(periods), fixedNumPeriodsWidth, ' ') + ') '
+                }
+                if (dispInfoPeriodMoves) {
+                    let phaseMovesLeft = (phaseMoves -
+                        hybridClock.elapsedPeriodMoves)
+                    phaseMovesLeft = (phaseMovesLeft > 0) ?
+                        phaseMovesLeft : 0
+                    let phaseMovesElapsed = (
+                        (hybridClock.elapsedPeriodMoves > phaseMoves) ?
+                        phaseMoves : hybridClock.elapsedPeriodMoves)
+
+                    let periodMoves = (dispCountElapsedPeriodMoves ?
+                            phaseMovesElapsed :
+                            phaseMovesLeft)
+                    timeStr += helper.padStart(
+                        String(periodMoves), fixedPeriodMovesWidth, ' ') + '  '
+                }
+
+                let mainTime = dispCountElapsedMainTime ?
+                    hybridClock.elapsedMainTime :
+                    mainTimeLeft
+
+                if (hasPositiveInitPeriodTime) {
+                    let periodTime = dispCountElapsedPeriodTime ?
+                        hybridClock.elapsedPeriodTime :
+                        delayTimeLeft
+
+                    timeStr += helper.timeToString(periodTime,
+                        fixedPeriodWidth,
+                        dispFormatPeriodTimeFSNumDigits,
+                        onLastPeriodNumSecs) + ' + '
+                }
 
                 fixedWidth -= helper.strlen(timeStr)
 

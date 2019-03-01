@@ -541,6 +541,14 @@ class App extends Component {
             'numPeriods': '# Periods',
             'periodTime': 'Period Time (sec)',
             'periodMoves': 'Moves/Period'}
+        } else if (clockMode === 'incrementAfter') {
+            clockProps = {'mainTime': 'Phase 1 Time (sec)',
+            'mainMoves': 'Phase 1 Moves',
+            'secondaryTime': 'Phase 2 Time (sec)',
+            'secondaryMoves': 'Phase 2 Moves',
+            'tertiaryTime': 'Phase 3 Time (sec)',
+            'tertiaryMoves': 'Phase 3 Moves',
+            'periodTime': 'Increm. Time (sec)'}
         } else if (clockMode === 'delay') {
             clockProps = {'mainTime': 'Phase 1 Time (sec)',
             'mainMoves': 'Phase 1 Moves',
@@ -764,6 +772,9 @@ class App extends Component {
                                 ), h('option', {
                                         value: 'clockMode:byo-yomi',
                                     }, 'Byo-yomi'
+                                ), h('option', {
+                                        value: 'clockMode:incrementAfter',
+                                    }, 'Increment (After)'
                                 ), h('option', {
                                         value: 'clockMode:delay',
                                     }, 'Delay'
