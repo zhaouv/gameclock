@@ -197,6 +197,67 @@ class playerclock extends Component {
                     nprops: nprops
                 })
             }
+        } else if (clockMode === 'word') {
+            let elapsedRemainder
+            if (hclk.elapsedMainTime >= initMainTime) {
+                elapsedRemainder = initMainTime - hclk.elapsedMainTime
+                this.adjHybridIC({
+                    action: 'incrElapsedTotalTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+            } else if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
+                // will use up main time
+                elapsedRemainder = initMainTime - hclk.elapsedMainTime
+                this.adjHybridIC({
+                    action: 'incrElapsedTotalTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.handleElapsedMainTime({nstate: nstate, nprops: nprops})
+            } else {
+                elapsedRemainder = 0
+                // will not use up main time
+                this.adjHybridIC({
+                    action: 'incrElapsedTotalTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+            }
+            elapsedRemainder = elapsed - elapsedRemainder
+            this.adjHybridIC({
+                action: 'incrElapsedTotalTime',
+                arg: elapsedRemainder,
+                nstate: nstate,
+                nprops: nprops
+            })
+            this.adjHybridIC({
+                action: 'incrElapsedMainTime',
+                arg: elapsedRemainder,
+                nstate: nstate,
+                nprops: nprops
+            })
         } else if (clockMode === 'incrementAfter' ||
             clockMode === 'incrementBefore') {
 
@@ -1274,7 +1335,10 @@ class playerclock extends Component {
                 if (hclk.elapsedMainTime < initMainTime) {
                     mainTimeLeft = true
                 }
-                if (clockMode === 'absolutePerPlayer' || clockMode === 'hourglass') {
+                if (clockMode === 'absolutePerPlayer' ||
+                    clockMode === 'hourglass' ||
+                    clockmode === 'word') {
+
                     hasTimeLeft = mainTimeLeft
                 } else if (clockMode === 'delay' ||
                     clockMode === 'incrementAfter' ||
@@ -1449,11 +1513,16 @@ class playerclock extends Component {
         let timeUntilNextSecond = 1
         let timeNow = helper.timeNow()
 
-        if (clockMode === 'absolutePerPlayer' || clockMode === 'hourglass') {
+        if (clockMode === 'absolutePerPlayer' ||
+            clockMode === 'hourglass' ||
+            clockMode === 'word') {
+
             let elapsedAtLastInterval = hclk.elapsedMainTime
             let timeSinceLastInterval = timeNow - intervalEnd
             let realElapsed = elapsedAtLastInterval + timeSinceLastInterval
-            if (hclk.elapsedMainTime < initTime.mainTime) {
+            if (hclk.elapsedMainTime < initTime.mainTime ||
+                clockMode === 'word') {
+
                 if (nprops.dispFormatMainTimeFSNumDigits > 0) {
                     let updateInterval = nprops.dispFormatMainTimeFSUpdateInterval
                     if (updateInterval > 0) {
@@ -2294,6 +2363,7 @@ class playerclock extends Component {
                     dispFormatMainTimeFSNumDigits,
                     onLastMainNumSecs)
             } else {
+                // clock modes absolutePerPlayer, hourglass, word
                 fixedWidth -= helper.strlen(timeStr)
 
                 let mainTime = dispCountElapsedMainTime ?

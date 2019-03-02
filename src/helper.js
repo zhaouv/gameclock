@@ -153,6 +153,12 @@ exports.timeToString = function(time = 0, width = null, numFSDigits = 0, lastNum
         }
         return str
     }
+    let negTime = false
+    if (time < 0) {
+        negTime = true
+        str += "-"
+        time = -time
+    }
     let timeIntSec = Math.floor(time)
     let hours = Math.floor(timeIntSec / 3600)
     let mins = Math.floor((timeIntSec - (hours * 3600)) / 60)
@@ -173,7 +179,7 @@ exports.timeToString = function(time = 0, width = null, numFSDigits = 0, lastNum
         str += String(secs)
     }
     if (numFSDigits > 0) {
-        if (lastNumSecs) {
+        if (lastNumSecs || negTime) {
             str += '.' +
                 String((time - timeIntSec)).
                     slice(2).

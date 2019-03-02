@@ -119,6 +119,9 @@ class gameclock extends Component {
             } else {
                 mainTimeWidth = helper.strlen(helper.timeToString(maxMainTime))
             }
+            if (clockMode === 'word') {
+                mainTimeWidth++
+            }
         } else {
             mainTimeWidth = 0
         }
