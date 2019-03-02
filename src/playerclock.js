@@ -2274,15 +2274,17 @@ class playerclock extends Component {
                     hclk.elapsedMainTime :
                     mainTimeLeft
 
-                if (hasPositiveInitPeriodTime) {
-                    let periodTime = dispCountElapsedPeriodTime ?
-                        hclk.elapsedPeriodTime :
-                        periodTimeLeft
+                if (!hasInfiniteMainTimeLeft) {
+                    if (hasPositiveInitPeriodTime) {
+                        let periodTime = dispCountElapsedPeriodTime ?
+                            hclk.elapsedPeriodTime :
+                            periodTimeLeft
 
-                    timeStr += helper.timeToString(periodTime,
-                        fixedPeriodWidth,
-                        dispFormatPeriodTimeFSNumDigits,
-                        onLastPeriodNumSecs) + ' + '
+                        timeStr += helper.timeToString(periodTime,
+                            fixedPeriodWidth,
+                            dispFormatPeriodTimeFSNumDigits,
+                            onLastPeriodNumSecs) + ' + '
+                    }
                 }
 
                 fixedWidth -= helper.strlen(timeStr)

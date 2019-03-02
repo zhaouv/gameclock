@@ -4,7 +4,7 @@ const setByPath = require('set-value')
 const helper = require('../src/helper.js')
 const {gameclock} = require('..')
 
-// these two functions are only needed for the SPLIT PLAYER CLOCKS dmeo
+// these two functions are only needed for the SPLIT PLAYER CLOCKS demo
 // mini diff for when we change gameClockID, playerID, or number of players
 var removeOldClocks = function(gameClockID = null) {
     if (gameClockID == null) {
@@ -33,7 +33,7 @@ var removeOldClocks = function(gameClockID = null) {
 var handleUpdated = function() {
     // For SPLIT PLAYER CLOCKS demo
     // for demo, create copies of playerclocks using handleUpdated
-    // this way we can work around that preact limitation
+    // this way we can work around the preact limitation
     // of not allowing multiple return values (html fragments)
     // just need divs for each playerclock with id and class
     //  id:   targetdiv_playerclock_GAMECLOCKID_PLAYER
