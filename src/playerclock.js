@@ -14,18 +14,12 @@ class playerclock extends Component {
         }
 
         // internalClock keep absolute time reference points for hybridInternalClock
-        this.internalClock = {
-            state: 'preinit',
-            timeOnIntervalEnd: null,
-            timeOnIntervalStart: null,
-            timeOnPause: null,
-            timeOnReset: null,
-            timeOnResume: null,
-            timeOnStart: null
-        }
+        this.icState = 'preinit'
+        this.icTimeOnIntervalEnd = null
+        this.icTimeOnIntervalStart = null
 
         this.adjIC = this.adjIC.bind(this)
-        this.getRangeIC = this.getRangeIC.bind(this)
+        this.getIntervalIC = this.getIntervalIC.bind(this)
 
         this.addElapsedHybridIC = this.addElapsedHybridIC.bind(this)
         this.adjHybridIC = this.adjHybridIC.bind(this)
@@ -70,78 +64,54 @@ class playerclock extends Component {
     }
 
     adjIC({action = null} = {}) {
-        let clk = this.internalClock
         let ret = false
         if (action === 'update') {
-            if (clk.state === 'running') {
-                clk.timeOnIntervalStart = clk.timeOnIntervalEnd
-                clk.timeOnIntervalEnd = helper.timeNow()
+            if (this.icState === 'running') {
+                this.icTimeOnIntervalStart = this.icTimeOnIntervalEnd
+                this.icTimeOnIntervalEnd = helper.timeNow()
                 ret = true
             }
         } else if (action === 'pause') {
-            if (clk.state === 'running') {
-                clk.timeOnPause = helper.timeNow()
-                clk.timeOnIntervalEnd = clk.timeOnPause
-                clk.state = 'paused'
+            if (this.icState === 'running') {
+                this.icTimeOnIntervalEnd = helper.timeNow()
+                this.icState = 'paused'
                 ret = true
             }
         } else if (action === 'resume') {
-            if (clk.state === 'paused') {
-                clk.timeOnResume = helper.timeNow()
-                clk.timeOnIntervalStart = clk.timeOnResume
-                clk.timeOnIntervalEnd = clk.timeOnResume
-                clk.state = 'running'
+            if (this.icState === 'paused') {
+                let newTime = helper.timeNow()
+                this.icTimeOnIntervalStart = newTime
+                this.icTimeOnIntervalEnd = newTime
+                this.icState = 'running'
                 ret = true
-            } else if (clk.state === 'init') {
-                clk.timeOnStart = helper.timeNow()
-                clk.timeOnIntervalStart = clk.timeOnStart
-                clk.timeOnIntervalEnd = clk.timeOnStart
-                clk.state = 'running'
+            } else if (this.icState === 'init') {
+                let newTime = helper.timeNow()
+                this.icTimeOnIntervalStart = newTime
+                this.icTimeOnIntervalEnd = newTime
+                this.icState = 'running'
                 ret = true
             }
         } else if (action === 'reset') {
-            if (clk.state !== 'preinit') {
-                clk.timeOnReset = helper.timeNow()
-                clk.timeOnPause = null
-                clk.timeOnResume = null
-                clk.timeOnIntervalStart = null
-                clk.timeOnIntervalEnd = null
-                clk.timeOnStart = null
-                clk.state = 'init'
+            if (this.icState !== 'preinit') {
+                this.icTimeOnIntervalStart = null
+                this.icTimeOnIntervalEnd = null
+                this.icState = 'init'
                 ret = true
             }
         } else if (action === 'init') {
-            clk.timeOnReset = null
-            clk.timeOnPause = null
-            clk.timeOnResume = null
-            clk.timeOnIntervalStart = null
-            clk.timeOnIntervalEnd = null
-            clk.timeOnStart = null
-            clk.state = 'init'
+            this.icTimeOnIntervalStart = null
+            this.icTimeOnIntervalEnd = null
+            this.icState = 'init'
             ret = true
         }
         return ret
     }
 
-    getRangeIC({reftime = null} = {}) {
+    getIntervalIC() {
         let clk = this.internalClock
         let ret = null
-        if (reftime === 'start') {
-            if (clk.state === 'running' || clk.state === 'paused') {
-                ret = (helper.timeNow() - clk.timeOnStart)
-            }
-        } else if (reftime === 'pause') {
-            if (clk.state === 'paused') {
-                ret = (helper.timeNow() - clk.timeOnPause)
-            }
-        } else if (reftime === 'resume') {
-            if (clk.state === 'running' && clk.timeOnResume != null) {
-                ret = (helper.timeNow() - clk.timeOnResume)
-            }
-        } else if (reftime === 'interval') {
-            if (clk.state === 'paused' || clk.state === 'running') {
-                ret = (clk.timeOnIntervalEnd - clk.timeOnIntervalStart)
-            }
+        if (this.icState === 'paused' || this.icState === 'running') {
+            ret = (this.icTimeOnIntervalEnd - this.icTimeOnIntervalStart)
         }
         return ret
     }
@@ -1111,7 +1081,7 @@ class playerclock extends Component {
             // update time & check if expired
             if (hclk.state === 'running') {
                 if (this.adjIC({action: 'update'})) {
-                    let interval = this.getRangeIC({reftime: 'interval'})
+                    let interval = this.getIntervalIC()
                     if (interval != null) {
                         let expired = this.addElapsedHybridIC({
                             elapsed: interval,
@@ -1155,7 +1125,7 @@ class playerclock extends Component {
         } else if (action === 'pause') {
             if (hclk.state === 'running') {
                 if (this.adjIC({action: 'pause'})) {
-                    let interval = this.getRangeIC({reftime: 'interval'})
+                    let interval = this.getIntervalIC()
                     if (interval != null) {
                         let expired = this.addElapsedHybridIC({
                             elapsed: interval,
@@ -1568,7 +1538,7 @@ class playerclock extends Component {
         let clockMode = nprops.clockMode
         let initTime = nprops.initialTime
         let clk = this.internalClock
-        let intervalEnd = clk.timeOnIntervalEnd
+        let intervalEnd = this.icTimeOnIntervalEnd
 
         let timeUntilNextSecond = 1
         let timeNow = helper.timeNow()
