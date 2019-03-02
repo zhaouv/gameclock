@@ -103,12 +103,9 @@ class gameclock extends Component {
             clockMode === 'incrementBefore') {
 
             maxMainTime = maxMainTime + maxSecondaryTime + maxTertiaryTime
-        } else {
-            maxMainTime = Math.max(
-                maxMainTime,
-                maxSecondaryTime,
-                maxTertiaryTime
-            )
+        } else if (clockMode === 'hourglass') {
+            maxMainTime = initTime.reduce(
+                (sum, t) => (sum + (t.mainTime ? t.mainTime : 0 )), 0)
         }
 
         if (maxMainTime > 0) {
