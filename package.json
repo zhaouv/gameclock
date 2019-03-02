@@ -1,12 +1,14 @@
 {
   "private": true,
   "name": "gameclock",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "./src/main.js",
   "license": "MIT",
   "keywords": [
     "clock",
     "timer",
+    "gameclock",
+    "chessclock",
     "timing",
     "go",
     "chess",
@@ -33,6 +35,7 @@
     "set-value": "^3.0.0"
   },
   "scripts": {
-    "watch-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --watch"
+    "watch-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --watch",
+    "build-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --build"
   }
 }

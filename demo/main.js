@@ -264,6 +264,7 @@ class App extends Component {
 
             //demo state
             eventLog: '',
+            eventLogEnabled: false,
             numPlayers: 2,
             playerIcons: '../assets/demo/',
             splitPlayerClocks: false
@@ -481,14 +482,16 @@ class App extends Component {
     }
 
     logEvent(str) {
-        let ts = (new Date).toLocaleTimeString(undefined, {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        })
-        this.setState({
-            eventLog: ts + ' : ' + str + '\n\n' + this.state.eventLog
-        })
+        if (this.state.eventLogEnabled) {
+            let ts = (new Date).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })
+            this.setState({
+                eventLog: ts + ' : ' + str + '\n\n' + this.state.eventLog
+            })
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -528,6 +531,12 @@ class App extends Component {
             } else {
                 this.setState({initialTime: null})
             }
+        }
+
+        if (this.state.eventLogEnabled !== prevState.eventLogEnabled &&
+            this.state.eventLogEnabled === false) {
+
+                this.setState({eventLog: ''})
         }
     }
 
@@ -652,6 +661,7 @@ class App extends Component {
             initialTime,
 
             eventLog,
+            eventLogEnabled,
             numPlayers,
             playerIcons,
             splitPlayerClocks
@@ -1013,12 +1023,23 @@ class App extends Component {
                     )
                 ),
                 h('br', {}),
-                'event log: ',
-                h('textarea', {
-                    type: 'textarea',
-                    rows: '10',
-                    value: eventLog
-                })
+                h('div', {},
+                    h(this.CheckBox,
+                        {stateKey: 'eventLogEnabled',
+                        text: 'Enable Event Log'}
+                    ),
+                ),
+                eventLogEnabled ?
+                    h('div', {},
+                        'Event Log: ',
+                        h('br', {}),
+                        h('textarea', {
+                            type: 'textarea',
+                            rows: '10',
+                            cols: '60',
+                            value: eventLog
+                        })
+                    ) : null
             ),
 
             h('div', {style: {
@@ -1073,7 +1094,7 @@ class App extends Component {
             ),
             splitPlayerClocks !== true || initialTime == null ? null :
                 h('div', {style: {'margin-left': '2em'}},
-                    'Split Player Clocks Demo',
+                    'Game Clock Demo',
                     h('br', {}),
                     h('br', {}),
                     initialTime == null ? null :
