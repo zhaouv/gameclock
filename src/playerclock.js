@@ -1302,6 +1302,14 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })) {
+            if (nprops.clockMode === 'incrementAfter') {
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: (-nprops.initialTime.periodTime),
+                    nstate: nstate,
+                    nprops: nprops
+                })
+            }
             this.updateTimer({forced: true})
             this.handleInit({nstate: nstate, nprops: nprops})
             if (nprops.clockActive) {
@@ -1480,6 +1488,14 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })) {
+            if (nprops.clockMode === 'incrementAfter') {
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: (-nprops.initialTime.periodTime),
+                    nstate: nstate,
+                    nprops: nprops
+                })
+            }
             this.updateTimer({forced: true, nstate: nstate, nprops: nprops})
             this.handleReset({nstate: nstate, nprops: nprops})
             return true
@@ -1974,9 +1990,10 @@ class playerclock extends Component {
                 nprops.initialTime.mainTime !== prevProps.initialTime.mainTime ||
                 nprops.initialTime.numPeriods !== prevProps.initialTime.numPeriods ||
                 nprops.initialTime.periodMoves !== prevProps.initialTime.periodMoves ||
-                nprops.initialTime.periodTime !== prevProps.initialTime.periodTime
+                nprops.initialTime.periodTime !== prevProps.initialTime.periodTime ||
+                nprops.clockMode !== prevProps.clockMode
             )) {
-            // do init on change of initial Time
+            // do init on change of initial Time / clockMode
             // first pause to stop clock tick
             nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
             this.pauseTimer({nstate: nstate, nprops: nprops})
