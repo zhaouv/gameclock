@@ -2076,44 +2076,49 @@ class playerclock extends Component {
             playerText,
         } = this.props
 
+        let hclkHasState = hclk != null && hclk.state != null
+        let hclkState = hclkHasState ? hclk.state : null
         let initTime = initialTime
-
-        let hclkHasState = hclk != null &&
-                hclk.state != null
-        let hclkState = hclkHasState ?
-                hclk.state : null
         let hasInitTime = initTime != null
         let hasTimerInit = hasInitTime && hclkHasState
 
-        let mainTime
-
-        let {
-            phase,
-            phaseInitTime,
-            phaseMoves,
-            onLastPhase,
-            totalPhases
-        } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
-
         let displayDelay = false
         let displayIncrement = false
-        let delayTimeLeft = hasTimerInit ?
-                initTime.periodTime - hclk.elapsedPeriodTime : 0
-
-        let numPhasesLeft = hasTimerInit ?
-                totalPhases - hclk.elapsedNumPeriods : 0
 
         let hasPositiveInitPeriodTime = (hasTimerInit &&
             initTime.periodTime != null &&
             initTime.periodTime > 0)
 
-        if (clockMode === 'delay') {
-            displayDelay = true
-            mainTime = phaseInitTime
-        } else if (clockMode === 'incrementAfter' ||
+        let mainTime,
+            numPhasesLeft,
+            phase,
+            phaseInitTime,
+            phaseMoves,
+            onLastPhase,
+            totalPhases
+
+        if (clockMode === 'delay' ||
+            clockMode === 'incrementAfter' ||
             clockMode === 'incrementBefore') {
 
-            displayIncrement = true
+            ({
+                phase,
+                phaseInitTime,
+                phaseMoves,
+                onLastPhase,
+                totalPhases
+            } = this.getPhaseInfo({hclk: hclk, initTime: initTime}))
+
+            numPhasesLeft = hasTimerInit ?
+                    totalPhases - hclk.elapsedNumPeriods : 0
+
+            if (clockMode === 'delay') {
+                displayDelay = true
+            } else if (clockMode === 'incrementAfter' ||
+                clockMode === 'incrementBefore') {
+
+                displayIncrement = true
+            }
             mainTime = phaseInitTime
         } else {
             mainTime = hasTimerInit ? initTime.mainTime : 0
@@ -2138,12 +2143,11 @@ class playerclock extends Component {
                     )
                 )
 
+        let periodTimeLeft = hasTimerInit ?
+            initTime.periodTime - hclk.elapsedPeriodTime : 0
+
         let displayByoYomi = (clockMode === 'byo-yomi') &&
                 hasTimerInit && !hasMainTimeLeft
-        let byoYomiPeriodTimeLeft = hasTimerInit ?
-                initTime.periodTime - hclk.elapsedPeriodTime : 0
-        let byoYomiNumPeriodsLeft = hasTimerInit ?
-                initTime.numPeriods - hclk.elapsedNumPeriods : 0
 
         let mainLastNumSecs = dispFormatMainTimeFSLastNumSecs
         if (!(mainLastNumSecs > 0)) {
@@ -2156,12 +2160,12 @@ class playerclock extends Component {
         let onLastMainNumSecs = dispFormatMainTimeFSNumDigits > 0 ?
             (mainTimeLeft <= dispFormatMainTimeFSLastNumSecs) : false
         let onLastPeriodNumSecs = dispFormatPeriodTimeFSNumDigits > 0 ?
-            (byoYomiPeriodTimeLeft <= dispFormatPeriodTimeFSLastNumSecs) : false
+            (periodTimeLeft <= dispFormatPeriodTimeFSLastNumSecs) : false
 
         let hasInfiniteMainTimeLeft = hasNotExpired &&
             mainTimeLeft == 'Infinity'
         let hasInfinitePeriodTimeLeft = hasNotExpired &&
-            byoYomiPeriodTimeLeft == 'Infinity'
+            periodTimeLeft == 'Infinity'
         let hasInfiniteTimeLeft = hasInfiniteMainTimeLeft ||
             hasInfinitePeriodTimeLeft == 'Infinity'
 
@@ -2177,6 +2181,9 @@ class playerclock extends Component {
                 timeStr += helper.padStart(String(dispOnExpired), fixedWidth, ' ')
             } else if (displayByoYomi) {
                 if (dispInfoNumPeriods) {
+                    let byoYomiNumPeriodsLeft = hasTimerInit ?
+                            initTime.numPeriods - hclk.elapsedNumPeriods : 0
+
                     let periods = (dispCountElapsedNumPeriods ?
                         hclk.elapsedNumPeriods :
                         byoYomiNumPeriodsLeft)
@@ -2197,7 +2204,7 @@ class playerclock extends Component {
 
                 let periodTime = (dispCountElapsedPeriodTime ?
                     hclk.elapsedPeriodTime :
-                    byoYomiPeriodTimeLeft)
+                    periodTimeLeft)
 
                 timeStr += helper.timeToString(periodTime,
                     fixedWidth,
@@ -2270,7 +2277,7 @@ class playerclock extends Component {
                 if (hasPositiveInitPeriodTime) {
                     let periodTime = dispCountElapsedPeriodTime ?
                         hclk.elapsedPeriodTime :
-                        delayTimeLeft
+                        periodTimeLeft
 
                     timeStr += helper.timeToString(periodTime,
                         fixedPeriodWidth,
