@@ -7,10 +7,19 @@ class playerclock extends Component {
     constructor(props) {
         super(props)
 
-        // hybridClock keeps track of the elaspsed time and clock state
+        // keeps track of the elaspsed time and clock state
+        // aliased as hclk or hybridClock
         this.state = {
-            hybridClock: null,
-            needIncrementBefore: false
+            didTenCount: false,
+            elapsedMainTime: 0,
+            elapsedMoveTime: 0,
+            elapsedNumPeriods: 0,
+            elapsedTotalTime: 0,
+            elapsedPeriodMoves: 0,
+            elapsedPeriodTime: 0,
+            needIncrementBefore: false,
+            resetPeriod: false,
+            state: 'preinit'
         }
 
         // internalClock keep absolute time reference points for hybridInternalClock
@@ -123,7 +132,7 @@ class playerclock extends Component {
             return
         }
 
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         let initTime = nprops.initialTime
         let clockMode = nprops.clockMode
 
@@ -189,7 +198,6 @@ class playerclock extends Component {
             clockMode === 'incrementBefore') {
 
             // need to check first if expired already
-
             let phase = hclk.elapsedNumPeriods
             let phaseMoves = initTime.mainMoves
             let totalPhases = 1
@@ -953,7 +961,7 @@ class playerclock extends Component {
     }
 
     onElapsedPeriodAndNoRepeatsLeft({elapsed = null, nstate = null, nprops = null}) {
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         let initPeriodTime = nprops.initialTime.periodTime
 
         this.adjHybridIC({
@@ -982,7 +990,7 @@ class playerclock extends Component {
     }
 
     onElapsedPeriodAndRepeatsLeft({elapsed = null, nstate = null, nprops = null}) {
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         let initPeriodTime = nprops.initialTime.periodTime
 
         elapsed -= (initPeriodTime - hclk.elapsedPeriodTime)
@@ -1015,7 +1023,7 @@ class playerclock extends Component {
     }
 
     onMoveAndPeriodMovesElapsed({elapsed = null, nstate = null, nprops = null}) {
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         // special case:
         // don't add time when we just reset the period,
         // and waiting for clock to stop/resume
@@ -1048,7 +1056,7 @@ class playerclock extends Component {
     }
 
     onMoveAndPeriodMovesNotElapsed({elapsed = null, nstate = null, nprops = null} = {}) {
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         // special case:
         // don't add time when we just reset the period,
         // and waiting for clock to stop/resume
@@ -1072,10 +1080,7 @@ class playerclock extends Component {
         if (nstate == null) {
             return false
         }
-        if (nstate.hybridClock == null) {
-            nstate.hybridClock = {}
-        }
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         let ret = false
         if (action === 'update') {
             // update time & check if expired
@@ -1100,7 +1105,7 @@ class playerclock extends Component {
             }
         } else if (action === 'madeMove') {
             if (nprops.clockMode === 'incrementBefore') {
-                nstate.needIncrementBefore = true
+                hclk.needIncrementBefore = true
             }
             if (hclk.state === 'running') {
                 // must use updateTimer prior to madeMove
@@ -1112,7 +1117,7 @@ class playerclock extends Component {
                 })
                 if (expired) {
                     if (nprops.clockMode === 'incrementBefore') {
-                        nstate.needIncrementBefore = false
+                        hclk.needIncrementBefore = false
                     }
                     this.expireTimer({
                         nstate: nstate,
@@ -1164,7 +1169,7 @@ class playerclock extends Component {
                 hclk.resetPeriod = false
                 hclk.state = 'init'
                 hclk.didTenCount = false
-                nstate.needIncrementBefore = true
+                hclk.needIncrementBefore = true
                 ret = true
             }
         } else if (action === 'init') {
@@ -1178,7 +1183,7 @@ class playerclock extends Component {
                 hclk.resetPeriod = false
                 hclk.state = 'init'
                 hclk.didTenCount = false
-                nstate.needIncrementBefore = true
+                hclk.needIncrementBefore = true
                 ret = true
             }
         } else if (action === 'incrElapsedMainTime') {
@@ -1345,7 +1350,7 @@ class playerclock extends Component {
                 })
             }
             // if was in expired, check if we are no longer expired, then set paused
-            let hclk = nstate.hybridClock
+            let hclk = nstate
             let resetExpired = false
             if (hclk.state === 'expired') {
                 let hasTimeLeft = false
@@ -1494,8 +1499,9 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })) {
+            let hclk = nstate
             if (nprops.clockMode === 'incrementBefore' &&
-                nstate.needIncrementBefore) {
+                hclk.needIncrementBefore) {
 
                 this.adjHybridIC({
                     action: 'incrElapsedMainTime',
@@ -1503,7 +1509,7 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                nstate.needIncrementBefore = false
+                hclk.needIncrementBefore = false
             }
             this.startTick({nstate: nstate, nprops: nprops})
             this.updateTimer({nstate: nstate, nprops: nprops})
@@ -1516,7 +1522,8 @@ class playerclock extends Component {
     }
 
     updateTimer({forced = false, nstate = null, nprops = null} = {}) {
-        if (nstate != null && nstate.hybridClock.state !== 'preinit') {
+        let hclk = nstate
+        if (hclk != null && hclk.state !== 'preinit') {
             let expired = this.adjHybridIC({
                 action: 'update',
                 nstate: nstate,
@@ -1530,7 +1537,7 @@ class playerclock extends Component {
     }
 
     calcTimeUntilNextWholeSecond({nstate = null, nprops = null} = {}) {
-        let hclk = nstate.hybridClock
+        let hclk = nstate
         if (hclk.state !== 'running') {
             return helper.secToMilli(1)
         }
@@ -1738,8 +1745,16 @@ class playerclock extends Component {
 
         // update state if changed
         this.setState({
-            hybridClock: nstate.hybridClock,
-            needIncrementBefore: nstate.needIncrementBefore
+            didTenCount: nstate.didTenCount,
+            elapsedMainTime: nstate.elapsedMainTime,
+            elapsedMoveTime: nstate.elapsedMoveTime,
+            elapsedNumPeriods: nstate.elapsedNumPeriods,
+            elapsedTotalTime: nstate.elapsedTotalTime,
+            elapsedPeriodMoves: nstate.elapsedPeriodMoves,
+            elapsedPeriodTime: nstate.elapsedPeriodTime,
+            needIncrementBefore: nstate.needIncrementBefore,
+            resetPeriod: nstate.resetPeriod,
+            state: nstate.state
         })
         // start next tick
         this.timeoutID = setTimeout(() => {
@@ -1748,9 +1763,9 @@ class playerclock extends Component {
     }
 
     handleAdjust({nstate = null, nprops = null, resetExpired = false, byHourglass = false} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1774,9 +1789,9 @@ class playerclock extends Component {
     }
 
     handleElapsedMainTime({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1789,9 +1804,9 @@ class playerclock extends Component {
     }
 
     handleElapsedPeriod({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1804,9 +1819,9 @@ class playerclock extends Component {
     }
 
     handleInit({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1819,9 +1834,9 @@ class playerclock extends Component {
     }
 
     handleMadeMove({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1834,9 +1849,9 @@ class playerclock extends Component {
     }
 
     handlePaused({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1849,9 +1864,9 @@ class playerclock extends Component {
     }
 
     handlePlayerClockExpired({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1864,9 +1879,9 @@ class playerclock extends Component {
     }
 
     handleReset({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1879,9 +1894,9 @@ class playerclock extends Component {
     }
 
     handleResumed({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1894,9 +1909,9 @@ class playerclock extends Component {
     }
 
     handleTenCount({nstate = null, nprops = null} = {}) {
-        let clock = nstate != null && nstate.hybridClock != null ?
+        let clock = nstate != null ?
             helper.deepCopyIfSame({
-                a: nstate.hybridClock, b: nstate.hybridClock
+                a: nstate, b: nstate
             }) : null
         let playerID = nprops != null && nprops.playerID != null ?
             JSON.parse(JSON.stringify(nprops.playerID)) : null
@@ -1913,7 +1928,7 @@ class playerclock extends Component {
         let nstate = {}
         this.initTimer({nprops: nprops, nstate: nstate})
         if (nprops != null && nprops.playerID != null &&
-            nstate != null && nstate.hybridClock != null) {
+            nstate != null) {
 
             if (nprops.adjustEventID != null &&
                 nprops.adjustPlayerID != null &&
@@ -1935,8 +1950,16 @@ class playerclock extends Component {
             nprops.handleUpdated()
         }
         this.setState({
-            hybridClock: nstate.hybridClock,
-            needIncrementBefore: nstate.needIncrementBefore
+            didTenCount: nstate.didTenCount,
+            elapsedMainTime: nstate.elapsedMainTime,
+            elapsedMoveTime: nstate.elapsedMoveTime,
+            elapsedNumPeriods: nstate.elapsedNumPeriods,
+            elapsedTotalTime: nstate.elapsedTotalTime,
+            elapsedPeriodMoves: nstate.elapsedPeriodMoves,
+            elapsedPeriodTime: nstate.elapsedPeriodTime,
+            needIncrementBefore: nstate.needIncrementBefore,
+            resetPeriod: nstate.resetPeriod,
+            state: nstate.state
         })
     }
 
@@ -1946,7 +1969,7 @@ class playerclock extends Component {
 
         nprops.handleUpdated()
         if (nprops != null && nprops.playerID != null &&
-            nstate != null && nstate.hybridClock != null) {
+            nstate != null) {
 
             if (nprops.adjustEventID != null &&
                 nprops.adjustPlayerID != null &&
@@ -2019,8 +2042,16 @@ class playerclock extends Component {
         // update state if changed
         if (nstate != this.state) {
             this.setState({
-                hybridClock: nstate.hybridClock,
-                needIncrementBefore: nstate.needIncrementBefore
+                didTenCount: nstate.didTenCount,
+                elapsedMainTime: nstate.elapsedMainTime,
+                elapsedMoveTime: nstate.elapsedMoveTime,
+                elapsedNumPeriods: nstate.elapsedNumPeriods,
+                elapsedTotalTime: nstate.elapsedTotalTime,
+                elapsedPeriodMoves: nstate.elapsedPeriodMoves,
+                elapsedPeriodTime: nstate.elapsedPeriodTime,
+                needIncrementBefore: nstate.needIncrementBefore,
+                resetPeriod: nstate.resetPeriod,
+                state: nstate.state
             })
         }
     }
@@ -2030,17 +2061,11 @@ class playerclock extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        let {
-            hybridClock,
-            needIncrementBefore
-        } = this.state
-
-        if (hybridClock !== nextState.hybridClock) return true
-        if (hybridClock != null && nextState.hybridClock != null &&
-            !helper.shallowEquals(hybridClock, nextState.hybridClock)) {
+        if (this.state !== nextState) return true
+        if (this.state != null &&
+            !helper.shallowEquals(this.state, nextState)) {
                 return true
         }
-        if (needIncrementBefore !== nextState.needIncrementBefore) return true
 
         let {
             adjustAction,
@@ -2139,9 +2164,7 @@ class playerclock extends Component {
     }
 
     render() {
-        let {
-            hybridClock
-        } = this.state
+        let hybridClock = this.state
 
         let {
             clockMode,
