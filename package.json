@@ -21,7 +21,7 @@
     "react"
   ],
   "peerDependencies": {
-    "preact": "^8.3.0"
+    "preact": "^8.4.2"
   },
   "dependencies": {
     "classnames": "^2.2.6",
@@ -29,9 +29,9 @@
     "performance-now": "^2.1.0"
   },
   "devDependencies": {
-    "preact": "^8.3.0",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.1",
+    "preact": "^8.4.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
     "set-value": "^3.0.0"
   },
   "scripts": {
