@@ -8,7 +8,7 @@ class playerclock extends Component {
         super(props)
 
         // keeps track of the elaspsed time and clock state
-        // aliased as hclk or hybridClock
+        // aliased as hclk (hybrid clock)
         this.state = {
             didTenCount: false,
             elapsedMainTime: 0,
@@ -22,7 +22,7 @@ class playerclock extends Component {
             state: 'preinit'
         }
 
-        // internalClock keep absolute time reference points for hybridInternalClock
+        // internalClock keeps absolute time reference points for hybridClock
         this.icState = 'preinit'
         this.icTimeOnIntervalEnd = null
         this.icTimeOnIntervalStart = null
@@ -32,6 +32,9 @@ class playerclock extends Component {
 
         this.addElapsedHybridIC = this.addElapsedHybridIC.bind(this)
         this.adjHybridIC = this.adjHybridIC.bind(this)
+
+        // helper for clock modes delay & increment
+        this.getPhaseInfo = this.getPhaseInfo.bind(this)
 
         // scriptable Clock Events
         this.onElapsedPeriodAndRepeatsLeft = this.onElapsedPeriodAndRepeatsLeft.bind(this)
@@ -198,38 +201,13 @@ class playerclock extends Component {
             clockMode === 'incrementBefore') {
 
             // need to check first if expired already
-            let phase = hclk.elapsedNumPeriods
-            let phaseMoves = initTime.mainMoves
-            let totalPhases = 1
-            let phaseInitTime = initTime.mainTime
-            if (initTime.secondaryTime != null &&
-                initTime.secondaryTime >= 0) {
-
-                totalPhases++
-                if (phase == 1) {
-                    phaseInitTime = initTime.secondaryTime
-                    if (initTime.secondaryMoves != null &&
-                        initTime.secondaryMoves > 0) {
-
-                        phaseMoves = initTime.secondaryMoves
-                    }
-                }
-            }
-            if (initTime.tertiaryTime != null
-                && initTime.tertiaryTime >= 0) {
-
-                totalPhases++
-                if (phase == 2) {
-                    phaseInitTime = initTime.tertiaryTime
-                    if (initTime.tertiaryMoves != null &&
-                        initTime.tertiaryMoves > 0) {
-
-                        phaseMoves = initTime.tertiaryMoves
-                    }
-                }
-            }
-
-            let onLastPhase = (phase === (totalPhases - 1))
+            let {
+                phase,
+                phaseInitTime,
+                phaseMoves,
+                onLastPhase,
+                totalPhases
+            } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
             if (hclk.elapsedMainTime >= phaseInitTime) {
                 // phase time expired already
@@ -251,38 +229,13 @@ class playerclock extends Component {
             let elapsedRemainder = elapsed
 
             while (elapsedRemainder > 0) {
-                let phase = hclk.elapsedNumPeriods
-                let phaseMoves = initTime.mainMoves
-                let totalPhases = 1
-                let phaseInitTime = initTime.mainTime
-                if (initTime.secondaryTime != null &&
-                    initTime.secondaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 1) {
-                        phaseInitTime = initTime.secondaryTime
-                        if (initTime.secondaryMoves != null &&
-                            initTime.secondaryMoves > 0) {
-
-                            phaseMoves = initTime.secondaryMoves
-                        }
-                    }
-                }
-                if (initTime.tertiaryTime != null
-                    && initTime.tertiaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 2) {
-                        phaseInitTime = initTime.tertiaryTime
-                        if (initTime.tertiaryMoves != null &&
-                            initTime.tertiaryMoves > 0) {
-
-                            phaseMoves = initTime.tertiaryMoves
-                        }
-                    }
-                }
-
-                let onLastPhase = (phase === (totalPhases - 1))
+                let {
+                    phase,
+                    phaseInitTime,
+                    phaseMoves,
+                    onLastPhase,
+                    totalPhases
+                } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
                 if (hclk.elapsedMainTime >= phaseInitTime) {
                     // phase time expired already
@@ -398,36 +351,14 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                let phase = hclk.elapsedNumPeriods
-                let phaseMoves = initTime.mainMoves
-                let totalPhases = 1
-                let phaseInitTime = initTime.mainTime
-                if (initTime.secondaryTime != null &&
-                    initTime.secondaryTime >= 0) {
+                let {
+                    phase,
+                    phaseInitTime,
+                    phaseMoves,
+                    onLastPhase,
+                    totalPhases
+                } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
-                    totalPhases++
-                    if (phase == 1) {
-                        phaseInitTime = initTime.secondaryTime
-                        if (initTime.secondaryMoves != null &&
-                            initTime.secondaryMoves > 0) {
-
-                            phaseMoves = initTime.secondaryMoves
-                        }
-                    }
-                }
-                if (initTime.tertiaryTime != null
-                    && initTime.tertiaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 2) {
-                        phaseInitTime = initTime.tertiaryTime
-                        if (initTime.tertiaryMoves != null &&
-                            initTime.tertiaryMoves > 0) {
-
-                            phaseMoves = initTime.tertiaryMoves
-                        }
-                    }
-                }
                 if (hclk.elapsedPeriodMoves >= phaseMoves) {
                     // advance to next phase if there is a next phase
                     if (phase < (totalPhases - 1)) {
@@ -514,39 +445,13 @@ class playerclock extends Component {
             }
 
             // need to check first if expired already
-
-            let phase = hclk.elapsedNumPeriods
-            let phaseMoves = initTime.mainMoves
-            let totalPhases = 1
-            let phaseInitTime = initTime.mainTime
-            if (initTime.secondaryTime != null &&
-                initTime.secondaryTime >= 0) {
-
-                totalPhases++
-                if (phase == 1) {
-                    phaseInitTime = initTime.secondaryTime
-                    if (initTime.secondaryMoves != null &&
-                        initTime.secondaryMoves > 0) {
-
-                        phaseMoves = initTime.secondaryMoves
-                    }
-                }
-            }
-            if (initTime.tertiaryTime != null
-                && initTime.tertiaryTime >= 0) {
-
-                totalPhases++
-                if (phase == 2) {
-                    phaseInitTime = initTime.tertiaryTime
-                    if (initTime.tertiaryMoves != null &&
-                        initTime.tertiaryMoves > 0) {
-
-                        phaseMoves = initTime.tertiaryMoves
-                    }
-                }
-            }
-
-            let onLastPhase = (phase === (totalPhases - 1))
+            let {
+                phase,
+                phaseInitTime,
+                phaseMoves,
+                onLastPhase,
+                totalPhases
+            } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
             if (hclk.elapsedMainTime >= phaseInitTime) {
                 // phase time expired already
@@ -566,38 +471,13 @@ class playerclock extends Component {
             }
 
             while (elapsedRemainder > 0) {
-                let phase = hclk.elapsedNumPeriods
-                let phaseMoves = initTime.mainMoves
-                let totalPhases = 1
-                let phaseInitTime = initTime.mainTime
-                if (initTime.secondaryTime != null &&
-                    initTime.secondaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 1) {
-                        phaseInitTime = initTime.secondaryTime
-                        if (initTime.secondaryMoves != null &&
-                            initTime.secondaryMoves > 0) {
-
-                            phaseMoves = initTime.secondaryMoves
-                        }
-                    }
-                }
-                if (initTime.tertiaryTime != null
-                    && initTime.tertiaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 2) {
-                        phaseInitTime = initTime.tertiaryTime
-                        if (initTime.tertiaryMoves != null &&
-                            initTime.tertiaryMoves > 0) {
-
-                            phaseMoves = initTime.tertiaryMoves
-                        }
-                    }
-                }
-
-                let onLastPhase = (phase === (totalPhases - 1))
+                let {
+                    phase,
+                    phaseInitTime,
+                    phaseMoves,
+                    onLastPhase,
+                    totalPhases
+                } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
                 if (hclk.elapsedMainTime >= phaseInitTime) {
                     // phase time expired already
@@ -713,36 +593,14 @@ class playerclock extends Component {
                     nstate: nstate,
                     nprops: nprops
                 })
-                let phase = hclk.elapsedNumPeriods
-                let phaseMoves = initTime.mainMoves
-                let totalPhases = 1
-                let phaseInitTime = initTime.mainTime
-                if (initTime.secondaryTime != null &&
-                    initTime.secondaryTime >= 0) {
+                let {
+                    phase,
+                    phaseInitTime,
+                    phaseMoves,
+                    onLastPhase,
+                    totalPhases
+                } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
-                    totalPhases++
-                    if (phase == 1) {
-                        phaseInitTime = initTime.secondaryTime
-                        if (initTime.secondaryMoves != null &&
-                            initTime.secondaryMoves > 0) {
-
-                            phaseMoves = initTime.secondaryMoves
-                        }
-                    }
-                }
-                if (initTime.tertiaryTime != null
-                    && initTime.tertiaryTime >= 0) {
-
-                    totalPhases++
-                    if (phase == 2) {
-                        phaseInitTime = initTime.tertiaryTime
-                        if (initTime.tertiaryMoves != null &&
-                            initTime.tertiaryMoves > 0) {
-
-                            phaseMoves = initTime.tertiaryMoves
-                        }
-                    }
-                }
                 if (hclk.elapsedPeriodMoves >= phaseMoves) {
                     // advance to next phase if there is a next phase
                     if (phase < (totalPhases - 1)) {
@@ -1273,6 +1131,60 @@ class playerclock extends Component {
         return ret
     }
 
+    getPhaseInfo({hclk = null, initTime = null} = {}) {
+        // need to check first if expired already
+        if (hclk === null || initTime == null) {
+            let phaseInfo = {
+                phase: 0,
+                phaseInitTime: 0,
+                phaseMoves: 0,
+                onLastPhase: false,
+                totalPhases: 0
+            }
+            return phaseInfo
+        }
+        let phase = hclk.elapsedNumPeriods
+        let phaseMoves = initTime.mainMoves
+        let totalPhases = 1
+        let phaseInitTime = initTime.mainTime
+        if (initTime.secondaryTime != null &&
+            initTime.secondaryTime >= 0) {
+
+            totalPhases++
+            if (phase == 1) {
+                phaseInitTime = initTime.secondaryTime
+                if (initTime.secondaryMoves != null &&
+                    initTime.secondaryMoves > 0) {
+
+                    phaseMoves = initTime.secondaryMoves
+                }
+            }
+        }
+        if (initTime.tertiaryTime != null
+            && initTime.tertiaryTime >= 0) {
+
+            totalPhases++
+            if (phase == 2) {
+                phaseInitTime = initTime.tertiaryTime
+                if (initTime.tertiaryMoves != null &&
+                    initTime.tertiaryMoves > 0) {
+
+                    phaseMoves = initTime.tertiaryMoves
+                }
+            }
+        }
+
+        let onLastPhase = (phase === (totalPhases - 1))
+        let phaseInfo = {
+            phase: phase,
+            phaseInitTime: phaseInitTime,
+            phaseMoves: phaseMoves,
+            onLastPhase: onLastPhase,
+            totalPhases: totalPhases
+        }
+        return phaseInfo
+    }
+
     expireTimer({nstate = null, nprops = null} = {}) {
         // only used from adjHybridIC
         this.stopTick({nstate: nstate, nprops: nprops})
@@ -1368,26 +1280,13 @@ class playerclock extends Component {
                     clockMode === 'incrementAfter' ||
                     clockMode === 'incrementBefore') {
 
-                    let totalPhases = 1
-                    let phaseInitTime = initTime.mainTime
-                    if (initTime.secondaryTime != null &&
-                        initTime.secondaryTime >= 0) {
-
-                        totalPhases++
-                        if (phase == 1) {
-                            phaseInitTime = initTime.secondaryTime
-                        }
-                    }
-                    if (initTime.tertiaryTime != null
-                        && initTime.tertiaryTime >= 0) {
-
-                        totalPhases++
-                        if (phase == 2) {
-                            phaseInitTime = initTime.tertiaryTime
-                        }
-                    }
-
-                    let onLastPhase = (phase === (totalPhases - 1))
+                    let {
+                        phase,
+                        phaseInitTime,
+                        phaseMoves,
+                        onLastPhase,
+                        totalPhases
+                    } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
                     if (hclk.elapsedMainTime < phaseInitTime) {
                         mainTimeLeft = true
@@ -1586,22 +1485,13 @@ class playerclock extends Component {
                         lastNumSecs = Infinity
                     }
 
-                    let phase = hclk.elapsedNumPeriods
-                    let phaseInitTime = initTime.mainTime
-                    if (initTime.secondaryTime != null &&
-                        initTime.secondaryTime >= 0) {
-
-                        if (phase == 1) {
-                            phaseInitTime = initTime.secondaryTime
-                        }
-                    }
-                    if (initTime.tertiaryTime != null
-                        && initTime.tertiaryTime >= 0) {
-
-                        if (phase == 2) {
-                            phaseInitTime = initTime.tertiaryTime
-                        }
-                    }
+                    let {
+                        phase,
+                        phaseInitTime,
+                        phaseMoves,
+                        onLastPhase,
+                        totalPhases
+                    } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
                     if ((phaseInitTime - realElapsed) <= lastNumSecs) {
                         // update at steps of updateInterval
@@ -1636,22 +1526,13 @@ class playerclock extends Component {
                         lastNumSecs = Infinity
                     }
 
-                    let phase = hclk.elapsedNumPeriods
-                    let phaseInitTime = initTime.mainTime
-                    if (initTime.secondaryTime != null &&
-                        initTime.secondaryTime >= 0) {
-
-                        if (phase == 1) {
-                            phaseInitTime = initTime.secondaryTime
-                        }
-                    }
-                    if (initTime.tertiaryTime != null
-                        && initTime.tertiaryTime >= 0) {
-
-                        if (phase == 2) {
-                            phaseInitTime = initTime.tertiaryTime
-                        }
-                    }
+                    let {
+                        phase,
+                        phaseInitTime,
+                        phaseMoves,
+                        onLastPhase,
+                        totalPhases
+                    } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
                     if ((phaseInitTime - realElapsed) <= lastNumSecs) {
                         // update at steps of updateInterval
@@ -2164,7 +2045,7 @@ class playerclock extends Component {
     }
 
     render() {
-        let hybridClock = this.state
+        let hclk = this.state
 
         let {
             clockMode,
@@ -2197,55 +2078,30 @@ class playerclock extends Component {
 
         let initTime = initialTime
 
-        let hybridClockHasState = hybridClock != null &&
-                hybridClock.state != null
-        let hclkState = hybridClockHasState ?
-                hybridClock.state : null
+        let hclkHasState = hclk != null &&
+                hclk.state != null
+        let hclkState = hclkHasState ?
+                hclk.state : null
         let hasInitTime = initTime != null
-        let hasTimerInit = hasInitTime && hybridClockHasState
+        let hasTimerInit = hasInitTime && hclkHasState
 
         let mainTime
 
-        let phase = hybridClockHasState ? hybridClock.elapsedNumPeriods : 0
-        let phaseMoves = initTime.mainMoves
-        let totalPhases = 1
-        let phaseInitTime = initTime.mainTime
+        let {
+            phase,
+            phaseInitTime,
+            phaseMoves,
+            onLastPhase,
+            totalPhases
+        } = this.getPhaseInfo({hclk: hclk, initTime: initTime})
 
-        if (hasInitTime && initTime.secondaryTime != null &&
-            initTime.secondaryTime >= 0) {
-
-            totalPhases++
-            if (phase == 1) {
-                phaseInitTime = initTime.secondaryTime
-                if (initTime.secondaryMoves != null &&
-                    initTime.secondaryMoves > 0) {
-
-                    phaseMoves = initTime.secondaryMoves
-                }
-            }
-        }
-        if (hasInitTime && initTime.tertiaryTime != null
-            && initTime.tertiaryTime >= 0) {
-
-            totalPhases++
-            if (phase == 2) {
-                phaseInitTime = initTime.tertiaryTime
-                if (initTime.tertiaryMoves != null &&
-                    initTime.tertiaryMoves > 0) {
-
-                    phaseMoves = initTime.tertiaryMoves
-                }
-            }
-        }
-
-        let onLastPhase = (phase === (totalPhases - 1))
         let displayDelay = false
         let displayIncrement = false
         let delayTimeLeft = hasTimerInit ?
-                initTime.periodTime - hybridClock.elapsedPeriodTime : 0
+                initTime.periodTime - hclk.elapsedPeriodTime : 0
 
         let numPhasesLeft = hasTimerInit ?
-                totalPhases - hybridClock.elapsedNumPeriods : 0
+                totalPhases - hclk.elapsedNumPeriods : 0
 
         let hasPositiveInitPeriodTime = (hasTimerInit &&
             initTime.periodTime != null &&
@@ -2264,18 +2120,18 @@ class playerclock extends Component {
         }
 
         let mainTimeLeft = hasTimerInit ?
-                mainTime - hybridClock.elapsedMainTime : 0
+                mainTime - hclk.elapsedMainTime : 0
         let hasMainTimeLeft = mainTimeLeft > 0
         let hasExpired = hasTimerInit &&
                 hclkState === 'expired'
         let hasNotExpired = hasTimerInit &&
                 hclkState !== 'expired'
 
-        let isInactive = !clockActive && hybridClockHasState && (
+        let isInactive = !clockActive && hclkHasState && (
                 hclkState === 'preinit' ||
                 hclkState === 'init' ||
                 hclkState === 'reset')
-        let isPaused = hasTimerInit && hybridClockHasState &&
+        let isPaused = hasTimerInit && hclkHasState &&
                 (!clockActive && (
                     hclkState === 'running' ||
                     hclkState === 'paused'
@@ -2285,9 +2141,9 @@ class playerclock extends Component {
         let displayByoYomi = (clockMode === 'byo-yomi') &&
                 hasTimerInit && !hasMainTimeLeft
         let byoYomiPeriodTimeLeft = hasTimerInit ?
-                initTime.periodTime - hybridClock.elapsedPeriodTime : 0
+                initTime.periodTime - hclk.elapsedPeriodTime : 0
         let byoYomiNumPeriodsLeft = hasTimerInit ?
-                initTime.numPeriods - hybridClock.elapsedNumPeriods : 0
+                initTime.numPeriods - hclk.elapsedNumPeriods : 0
 
         let mainLastNumSecs = dispFormatMainTimeFSLastNumSecs
         if (!(mainLastNumSecs > 0)) {
@@ -2322,7 +2178,7 @@ class playerclock extends Component {
             } else if (displayByoYomi) {
                 if (dispInfoNumPeriods) {
                     let periods = (dispCountElapsedNumPeriods ?
-                        hybridClock.elapsedNumPeriods :
+                        hclk.elapsedNumPeriods :
                         byoYomiNumPeriodsLeft)
 
                     timeStr += '(' + helper.padStart(
@@ -2330,9 +2186,9 @@ class playerclock extends Component {
                 }
                 if (dispInfoPeriodMoves) {
                     let periodMoves = (dispCountElapsedPeriodMoves ?
-                            hybridClock.elapsedPeriodMoves :
+                            hclk.elapsedPeriodMoves :
                             (initTime.periodMoves -
-                                hybridClock.elapsedPeriodMoves))
+                                hclk.elapsedPeriodMoves))
 
                     timeStr += helper.padStart(
                         String(periodMoves), fixedPeriodMovesWidth, ' ') + '  '
@@ -2340,7 +2196,7 @@ class playerclock extends Component {
                 fixedWidth -= helper.strlen(timeStr)
 
                 let periodTime = (dispCountElapsedPeriodTime ?
-                    hybridClock.elapsedPeriodTime :
+                    hclk.elapsedPeriodTime :
                     byoYomiPeriodTimeLeft)
 
                 timeStr += helper.timeToString(periodTime,
@@ -2350,7 +2206,7 @@ class playerclock extends Component {
             } else if (displayIncrement) {
                 if (dispInfoNumPeriods) {
                     let periods = dispCountElapsedNumPeriods ?
-                        (hybridClock.elapsedNumPeriods + 1) :
+                        (hclk.elapsedNumPeriods + 1) :
                         (numPhasesLeft - 1)
 
                     timeStr += '(' + helper.padStart(
@@ -2358,12 +2214,12 @@ class playerclock extends Component {
                 }
                 if (dispInfoPeriodMoves) {
                     let phaseMovesLeft = (phaseMoves -
-                        hybridClock.elapsedPeriodMoves)
+                        hclk.elapsedPeriodMoves)
                     phaseMovesLeft = (phaseMovesLeft > 0) ?
                         phaseMovesLeft : 0
                     let phaseMovesElapsed = (
-                        (hybridClock.elapsedPeriodMoves > phaseMoves) ?
-                        phaseMoves : hybridClock.elapsedPeriodMoves)
+                        (hclk.elapsedPeriodMoves > phaseMoves) ?
+                        phaseMoves : hclk.elapsedPeriodMoves)
 
                     let periodMoves = (dispCountElapsedPeriodMoves ?
                             phaseMovesElapsed :
@@ -2373,7 +2229,7 @@ class playerclock extends Component {
                 }
 
                 let mainTime = dispCountElapsedMainTime ?
-                    hybridClock.elapsedMainTime :
+                    hclk.elapsedMainTime :
                     mainTimeLeft
 
                 fixedWidth -= helper.strlen(timeStr)
@@ -2385,7 +2241,7 @@ class playerclock extends Component {
             } else if (displayDelay) {
                 if (dispInfoNumPeriods) {
                     let periods = dispCountElapsedNumPeriods ?
-                        (hybridClock.elapsedNumPeriods + 1) :
+                        (hclk.elapsedNumPeriods + 1) :
                         (numPhasesLeft - 1)
 
                     timeStr += '(' + helper.padStart(
@@ -2393,12 +2249,12 @@ class playerclock extends Component {
                 }
                 if (dispInfoPeriodMoves) {
                     let phaseMovesLeft = (phaseMoves -
-                        hybridClock.elapsedPeriodMoves)
+                        hclk.elapsedPeriodMoves)
                     phaseMovesLeft = (phaseMovesLeft > 0) ?
                         phaseMovesLeft : 0
                     let phaseMovesElapsed = (
-                        (hybridClock.elapsedPeriodMoves > phaseMoves) ?
-                        phaseMoves : hybridClock.elapsedPeriodMoves)
+                        (hclk.elapsedPeriodMoves > phaseMoves) ?
+                        phaseMoves : hclk.elapsedPeriodMoves)
 
                     let periodMoves = (dispCountElapsedPeriodMoves ?
                             phaseMovesElapsed :
@@ -2408,12 +2264,12 @@ class playerclock extends Component {
                 }
 
                 let mainTime = dispCountElapsedMainTime ?
-                    hybridClock.elapsedMainTime :
+                    hclk.elapsedMainTime :
                     mainTimeLeft
 
                 if (hasPositiveInitPeriodTime) {
                     let periodTime = dispCountElapsedPeriodTime ?
-                        hybridClock.elapsedPeriodTime :
+                        hclk.elapsedPeriodTime :
                         delayTimeLeft
 
                     timeStr += helper.timeToString(periodTime,
@@ -2432,7 +2288,7 @@ class playerclock extends Component {
                 fixedWidth -= helper.strlen(timeStr)
 
                 let mainTime = dispCountElapsedMainTime ?
-                    hybridClock.elapsedMainTime :
+                    hclk.elapsedMainTime :
                     mainTimeLeft
 
                 timeStr += helper.timeToString(mainTime,
