@@ -1,4 +1,4 @@
-const {createElement: h, Component} = require('preact')
+const {h, render, Component} = require('preact')
 const classnames = require('classnames')
 
 const playerclock = require('./playerclock')

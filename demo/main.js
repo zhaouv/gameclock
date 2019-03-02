@@ -1,7 +1,7 @@
 const {h, render, Component} = require('preact')
+const classnames = require('classnames')
 const setByPath = require('set-value')
 const helper = require('../src/helper.js')
-const classnames = require('classnames')
 const {gameclock} = require('..')
 
 // these two functions are only needed for the SPLIT PLAYER CLOCKS dmeo
