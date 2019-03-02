@@ -9,7 +9,8 @@ class playerclock extends Component {
 
         // hybridClock keeps track of the elaspsed time and clock state
         this.state = {
-            hybridClock: null
+            hybridClock: null,
+            needIncrementBefore: false
         }
 
         // internalClock keep absolute time reference points for hybridInternalClock
@@ -214,7 +215,9 @@ class playerclock extends Component {
                     nprops: nprops
                 })
             }
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             // need to check first if expired already
 
             let phase = hclk.elapsedNumPeriods
@@ -477,13 +480,15 @@ class playerclock extends Component {
                         })
                     }
                 }
-                // increment after
-                this.adjHybridIC({
-                    action: 'incrElapsedMainTime',
-                    arg: (-initPeriodTime),
-                    nstate: nstate,
-                    nprops: nprops
-                })
+                if (clockMode === 'incrementAfter') {
+                    // increment after
+                    this.adjHybridIC({
+                        action: 'incrElapsedMainTime',
+                        arg: (-initPeriodTime),
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                }
                 this.adjHybridIC({
                     action: 'resetPeriod',
                     nstate: nstate,
@@ -1124,6 +1129,9 @@ class playerclock extends Component {
                 }
             }
         } else if (action === 'madeMove') {
+            if (nprops.clockMode === 'incrementBefore') {
+                nstate.needIncrementBefore = true
+            }
             if (hclk.state === 'running') {
                 // must use updateTimer prior to madeMove
                 let expired = this.addElapsedHybridIC({
@@ -1133,6 +1141,9 @@ class playerclock extends Component {
                     nprops: nprops
                 })
                 if (expired) {
+                    if (nprops.clockMode === 'incrementBefore') {
+                        nstate.needIncrementBefore = false
+                    }
                     this.expireTimer({
                         nstate: nstate,
                         nprops: nprops
@@ -1183,6 +1194,7 @@ class playerclock extends Component {
                 hclk.resetPeriod = false
                 hclk.state = 'init'
                 hclk.didTenCount = false
+                nstate.needIncrementBefore = true
                 ret = true
             }
         } else if (action === 'init') {
@@ -1196,6 +1208,7 @@ class playerclock extends Component {
                 hclk.resetPeriod = false
                 hclk.state = 'init'
                 hclk.didTenCount = false
+                nstate.needIncrementBefore = true
                 ret = true
             }
         } else if (action === 'incrElapsedMainTime') {
@@ -1377,7 +1390,8 @@ class playerclock extends Component {
                 if (clockMode === 'absolutePerPlayer' || clockMode === 'hourglass') {
                     hasTimeLeft = mainTimeLeft
                 } else if (clockMode === 'delay' ||
-                    clockMode === 'incrementAfter') {
+                    clockMode === 'incrementAfter' ||
+                    clockMode === 'incrementBefore') {
 
                     let totalPhases = 1
                     let phaseInitTime = initTime.mainTime
@@ -1510,6 +1524,17 @@ class playerclock extends Component {
             nstate: nstate,
             nprops: nprops
         })) {
+            if (nprops.clockMode === 'incrementBefore' &&
+                nstate.needIncrementBefore) {
+
+                this.adjHybridIC({
+                    action: 'incrElapsedMainTime',
+                    arg: (-nprops.initialTime.periodTime),
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                nstate.needIncrementBefore = false
+            }
             this.startTick({nstate: nstate, nprops: nprops})
             this.updateTimer({nstate: nstate, nprops: nprops})
             this.handleResumed({nstate: nstate, nprops: nprops})
@@ -1570,7 +1595,9 @@ class playerclock extends Component {
                 timeUntilNextSecond = Math.min(timeUntilNextSecond,
                     Math.ceil(realElapsed) - realElapsed)
             }
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             let elapsedAtLastInterval = hclk.elapsedMainTime
             let timeSinceLastInterval = timeNow - intervalEnd
             let realElapsed = elapsedAtLastInterval + timeSinceLastInterval
@@ -1741,7 +1768,8 @@ class playerclock extends Component {
 
         // update state if changed
         this.setState({
-            hybridClock: nstate.hybridClock
+            hybridClock: nstate.hybridClock,
+            needIncrementBefore: nstate.needIncrementBefore
         })
         // start next tick
         this.timeoutID = setTimeout(() => {
@@ -1937,7 +1965,8 @@ class playerclock extends Component {
             nprops.handleUpdated()
         }
         this.setState({
-            hybridClock: nstate.hybridClock
+            hybridClock: nstate.hybridClock,
+            needIncrementBefore: nstate.needIncrementBefore
         })
     }
 
@@ -2008,9 +2037,10 @@ class playerclock extends Component {
                     this.pauseTimer({nstate: nstate, nprops: nprops})
                 }
             } else if (nprops.clockActive === true) {
+                // need a flag to know whether this is the start of a turn or manual resume
+                nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                 if (!this.resumeTimer({nstate: nstate, nprops: nprops})) {
                     // if could not resume, try init
-                    nstate = helper.deepCopyIfSame({a: nstate, b: this.state})
                     this.initTimer({nstate: nstate, nprops: nprops})
                 }
             }
@@ -2019,7 +2049,8 @@ class playerclock extends Component {
         // update state if changed
         if (nstate != this.state) {
             this.setState({
-                hybridClock: nstate.hybridClock
+                hybridClock: nstate.hybridClock,
+                needIncrementBefore: nstate.needIncrementBefore
             })
         }
     }
@@ -2030,7 +2061,8 @@ class playerclock extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         let {
-            hybridClock
+            hybridClock,
+            needIncrementBefore
         } = this.state
 
         if (hybridClock !== nextState.hybridClock) return true
@@ -2038,6 +2070,7 @@ class playerclock extends Component {
             !helper.shallowEquals(hybridClock, nextState.hybridClock)) {
                 return true
         }
+        if (needIncrementBefore !== nextState.needIncrementBefore) return true
 
         let {
             adjustAction,
@@ -2228,7 +2261,9 @@ class playerclock extends Component {
         if (clockMode === 'delay') {
             displayDelay = true
             mainTime = phaseInitTime
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             displayIncrement = true
             mainTime = phaseInitTime
         } else {

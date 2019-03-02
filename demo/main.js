@@ -541,7 +541,9 @@ class App extends Component {
             'numPeriods': '# Periods',
             'periodTime': 'Period Time (sec)',
             'periodMoves': 'Moves/Period'}
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             clockProps = {'mainTime': 'Phase 1 Time (sec)',
             'mainMoves': 'Phase 1 Moves',
             'secondaryTime': 'Phase 2 Time (sec)',
@@ -775,6 +777,9 @@ class App extends Component {
                                 ), h('option', {
                                         value: 'clockMode:incrementAfter',
                                     }, 'Increment (After)'
+                                ), h('option', {
+                                        value: 'clockMode:incrementBefore',
+                                    }, 'Increment (Before)'
                                 ), h('option', {
                                         value: 'clockMode:delay',
                                     }, 'Delay'

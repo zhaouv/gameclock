@@ -99,7 +99,8 @@ class gameclock extends Component {
         let clockMode = props.clockMode
 
         if (clockMode === 'delay' ||
-            clockMode === 'incrementAfter') {
+            clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
 
             maxMainTime = maxMainTime + maxSecondaryTime + maxTertiaryTime
         } else {
@@ -152,7 +153,9 @@ class gameclock extends Component {
                     periodDispWidth += 2 + periodMovesWidthOnly
                 }
             }
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             // including parenthesis and trailing space
             let numPeriodsWidthOnly = this.calcFixedNumPeriodsWidth(props)
             if (props.dispInfoNumPeriods === true) {
@@ -173,7 +176,8 @@ class gameclock extends Component {
         // always let time be at least width 1 (for time == 0)
         let maxWidth
         if (clockMode === 'delay' ||
-            clockMode === 'incrementAfter') {
+            clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
 
             maxWidth = widthPlayer +
                 Math.max(1, mainTimeWidth + periodDispWidth, expiredWidth)
@@ -235,7 +239,9 @@ class gameclock extends Component {
                     periodDispWidth += helper.strlen(String(maxNumPeriods))
                 }
             }
-        } else if (clockMode === 'incrementAfter') {
+        } else if (clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
+
             if (props.dispInfoNumPeriods === true) {
                 periodDispWidth += helper.strlen(String(totalPhases))
             }
@@ -256,7 +262,8 @@ class gameclock extends Component {
 
         if (clockMode === 'byo-yomi' ||
             clockMode === 'delay' ||
-            clockMode === 'incrementAfter') {
+            clockMode === 'incrementAfter' ||
+            clockMode === 'incrementBefore') {
             // calculate max period time
             let maxPeriodTime = initTime.reduce(
                 (max, t) => Math.max(max,
@@ -264,7 +271,8 @@ class gameclock extends Component {
 
             if (maxPeriodTime > 0 ||
                 clockMode === 'delay' ||
-                clockMode === 'incrementAfter') {
+                clockMode === 'incrementAfter' ||
+                clockMode === 'incrementBefore') {
 
                 if (props.dispInfoPeriodMoves === true) {
                     // calc max period/phase moves
@@ -274,7 +282,8 @@ class gameclock extends Component {
                             (max, t) => Math.max(max,
                                 t.periodMoves ? t.periodMoves : 0), 0)
                     } else if (clockMode === 'delay' ||
-                        clockMode === 'incrementAfter') {
+                        clockMode === 'incrementAfter' ||
+                        clockMode === 'incrementBefore') {
 
                         // for delay, this is the moves in a phase
                         let maxMainMoves = initTime.reduce(
