@@ -1100,7 +1100,7 @@ class App extends Component {
             ),
             splitPlayerClocks !== true || initialTime == null ? null :
                 h('div', {style: {'margin-left': '2em'}},
-                    'Game Clock Demo',
+                    'Game Clock',
                     h('br', {}),
                     h('br', {}),
                     initialTime == null ? null :
