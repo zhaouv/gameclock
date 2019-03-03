@@ -1053,7 +1053,9 @@ class App extends Component {
                     'margin-left': '2em'
                     }
                 },
-                "Game Clock Demo",
+                h('a',
+                    { href: 'https://github.com/dbosst/gameclock' },
+                    "Game Clock @ github"),
                 h('br', {}),
                 h('br', {}),
                 this.state.numPlayers > 0 && h(gameclock, {
