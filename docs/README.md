@@ -93,6 +93,8 @@ There are many variables that can be overriden to customize the look. For instan
 
 Please see the [gameclock.css](../css/gameclock.css) for ideas.
 
+A note on graphemes: the gameclock tries to keep the all the player clock's the same size by calculating how big the timer should be (this can't be done for increment modes since an infinite amount of time can be theoretically gained). This includes calculating the width of the `playerText` which is done using the npm package `grapheme-splitter` for better international support. However, for it to work properly, the "width" of what we would a character or, more properly, a grapheme, changes depending on which font you use. So if you wish to use playerText that has graphemes that are multiple bytes you should make sure you override the font-face chosen with a fixed-width font that displays each grapheme as one actual character (i.e. one that grapheme-splitter will count correctly).
+
 ___
 
 ## gameClock props
