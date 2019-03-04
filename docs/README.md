@@ -218,7 +218,7 @@ ___
 ## Callback events
 With the exception of `handleAdjust` (which additionally returns an `adjustmentEventID`) and handleUpdated (which returns nothing), all other events return an object with the following keys:
 * 'playerID' - a `String` that refers to symbolically the player whose turn just ended from making a move, corresponding to the `playerID` for the player's clock in `initialTime`
-* 'clock' - an `Object` that is the playerclock state, see the [clock state](clock-state) section
+* 'clock' - an `Object` that is the playerclock state, see the [clock state](#clock-state) section
 * 'activePlayers' - an `Array` of `String`. The string is a corresponding `playerID`. Only contains clocks that are not expired (when a clock is expired, it is removed from the array). The order shows the turns for each player clock, i.e., the first in the array is either that player's current turn or will soon be their turn, and depends on the event type and player clock states:
     - for `madeMove`, which fires after the player who made a move's clock stops, usually the `playerID` will appear last in the array and the first will be the player whose turn is immediately next
     - after the time expires, i.e. for `handleExpired`, the first will be the player whose turn would be next (if the game has not ended)
