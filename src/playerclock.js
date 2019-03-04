@@ -1337,7 +1337,7 @@ class playerclock extends Component {
                 }
                 if (clockMode === 'absolutePerPlayer' ||
                     clockMode === 'hourglass' ||
-                    clockmode === 'word') {
+                    clockMode === 'word') {
 
                     hasTimeLeft = mainTimeLeft
                 } else if (clockMode === 'delay' ||
