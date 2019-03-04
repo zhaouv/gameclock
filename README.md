@@ -40,7 +40,7 @@ CSS classes:
 * Style each player clock accordiong to the clcok state: expired, running, paused, init.
 
 ## Documentation
-Coming soon.
+[Please the docs by clicking here.](docs/README.md)
 
 ## Build the demo
 Pre-requisites: You need Node.js & npm installed to build the demo.
