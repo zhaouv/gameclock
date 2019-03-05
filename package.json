@@ -1,7 +1,8 @@
 {
-  "private": true,
-  "name": "gameclock",
-  "version": "0.0.1",
+  "name": "@dbosst/gameclock",
+  "description": "a digital timer for games, such as go and chess",
+  "version": "1.0.0",
+  "author": "dbosst",
   "main": "./src/main.js",
   "license": "MIT",
   "keywords": [
@@ -20,6 +21,10 @@
     "preact",
     "react"
   ],
+  "homepage": "https://github.com/dbosst/gameclock",
+  "bugs": {
+    "url": "https://github.com/dbosst/gameclock/issues"
+  },
   "peerDependencies": {
     "preact": "^8.4.2"
   },
@@ -37,5 +42,12 @@
   "scripts": {
     "watch-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --watch",
     "build-demo": "webpack --entry ./demo/main.js -o ./demo/bundle.js --progress --mode development --build"
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbosst/gameclock.git"
   }
 }
