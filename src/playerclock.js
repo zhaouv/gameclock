@@ -745,7 +745,10 @@ class playerclock extends Component {
                     nprops: nprops
                 })
             }
-            if (!mainTimeLeft) {
+            if (!mainTimeLeft &&
+                initTime.numPeriods != null &&
+                initTime.numPeriods > 0) {
+
                 let periodsRemain = initTime.numPeriods - hclk.elapsedNumPeriods
                 let elapsedPeriod = (hclk.elapsedPeriodTime + elapsedRemainder >= initPeriodTime)
                 if (periodsRemain > 1 && elapsedPeriod) {
@@ -873,6 +876,24 @@ class playerclock extends Component {
                         }
                     }
                 }
+            } else if (!mainTimeLeft &&
+                (initTime.numPeriods == null ||
+                !(initTime.numPeriods > 0))) {
+
+                // essentially no periods, equivalent to absolute time
+                // time expired
+                expired = true
+                this.adjHybridIC({
+                    action: 'setTenCount',
+                    arg: false,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'setExpired',
+                    nstate: nstate,
+                    nprops: nprops
+                })
             }
         }
 
