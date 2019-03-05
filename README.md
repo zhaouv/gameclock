@@ -23,11 +23,11 @@ Support for various timing modes:
 Customizable display:
 * Display elapsed or remaining time/periods/phase/moves
 * Customizable display text & information (player name, time expired text, periods, etc.)
-* Fractional seconds customization (0-5 decimal places, update interval)
+* Fractional seconds customization (0-4 decimal places, update interval)
 
 Adjustable clock:
-* Pause the clock first, and adjust the current player clock.
-* Also change the active player by pausing and making a move. You can adjust any player's clock this way.
+* Pause the clock first, and then adjust the current player clock.
+* Also, change the active player by pausing and making a move.
 
 Callback events, including:
 * On last 10 seconds (of current period/phase)
