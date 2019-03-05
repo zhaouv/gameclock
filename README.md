@@ -43,7 +43,7 @@ CSS classes:
 [Please read the docs by clicking here.](docs/README.md)
 
 ## Build the demo
-Pre-requisites: You need Node.js & npm installed to build the demo.
+Pre-requisites: You need Node.js, npm, and preact installed to build the demo.
 
 Then download this demo with `git` and use `npm` to install the dependencies:
 
