@@ -9,15 +9,13 @@
 
     --gameclock-background-color: #F8F8F8;
     --gameclock-foreground-color: #5E2E0C;
-    --gameclock-display-direction: 'col';
+    --gameclock-display-direction: column;
 
-    display: inline-grid;
-    position: relative;
+    display: inline-flex;
+    flex-direction: var(--gameclock-display-direction);
     border: var(--gameclock-border-width) solid var(--gameclock-border-color);
     color: var(--gameclock-foreground-color);
     background-color: var(--gameclock-background-color);
-    width: fit-content;
-    height: fit-content;
 }
 
 .playerclock {

@@ -89,7 +89,7 @@ ___
 
 ## Styling
 
-There are many variables that can be overriden to customize the look. For instance, overriding the .gameclock `--gameclock-display-direction` to 'row' will change the clocks from vertically stacked to horizontally stacked.
+There are many variables that can be overriden to customize the look. For instance, changing the .gameclock variable `--gameclock-display-direction` to `row` will change the clocks from vertically stacked to horizontally stacked.
 
 Please see the [gameclock.css](../css/gameclock.css) for ideas.
 
@@ -207,7 +207,7 @@ ___
 * periodMoves: `Integer
     - for `clockMode` byo-yomi, this corresponds to the # of moves that must be made in the current period before the elapsedPeriodTime is reset. For real byo-yomi this is usually 1. For canadian overtime this can be any positive number, i.e. 10, where you must make 10 moves within the periodTime for the elapsed period time to reset to 0.
     - for `clockMode` delay and increment, this corresponds to the bonus time given for every move from the first move.
-    
+
 ___
 
 ## Making a move or changing the current player clock
@@ -237,7 +237,7 @@ Most events return an object called `clock` that is a single playerclock's state
 * elapsedMoveTime: `Float`
     - The # of seconds elapsed since the start of a player's turn and is reset ONLY if the player makes a move when their clock is running. In other words, for example, if player Black's clock has been running for 5 minutes, the gameclock is then manually paused, then the `numMoves` is incremented to switch to the player White, the gameclock is manually resumed, and then White makes a move and so it becomes Black's turn again, the elapsedMoveTime continues to increment from where it left off for Black at 5 minutes. If you want different behavior, then you need to manually adjust the clock state, see the [Adjusting the clock during play](#adjusting-the-clock-during-play) section.
 * elapsedNumPeriods: `Integer`
-    - For `clockMode` byo-yomi it is the total number of periods elapsed. For `clockMode` delay or increment 
+    - For `clockMode` byo-yomi it is the total number of periods elapsed. For `clockMode` delay or increment
 * elapsedTotalTime: `Float`
     - The total time elapsed for the current player clock (including all periods/phases/delays/increments etc.), i.e. the time the player spent thinking
 * elapsedPeriodMoves: `Integer`
