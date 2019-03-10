@@ -201,10 +201,10 @@ ___
 * tertiaryTime: `Float` the second phase time in seconds, only used for `clockMode` delay and increment; set to `0` if you do not want a second phase of time or are using a different `clockMode`.
 * tertiaryMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the alotted time before advancing to the tertiaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
 * numPeriods: `Integer` for `clockMode` byo-yomi only. The number of byo-yomi periods that must elapse before the player's time expires. Set this to '0' if you are not using byo-yomi.
-* periodTime: `Integer
+* periodTime: `Float`
     - for `clockMode` byo-yomi, this corresponds to the amount of time in each period
     - for `clockMode` delay and increment, this corresponds to the bonus time given for every move from the first move.
-* periodMoves: `Integer
+* periodMoves: `Integer`
     - for `clockMode` byo-yomi, this corresponds to the # of moves that must be made in the current period before the elapsedPeriodTime is reset. For real byo-yomi this is usually 1. For canadian overtime this can be any positive number, i.e. 10, where you must make 10 moves within the periodTime for the elapsed period time to reset to 0.
     - for `clockMode` delay and increment, this corresponds to the bonus time given for every move from the first move.
 
