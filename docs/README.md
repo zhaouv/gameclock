@@ -167,9 +167,9 @@ The following list contains all props for the `gameclock` component, grouped acc
     - Called when a reset is performed, which is when both `numMoves` is set to 0 and `mode` is set to 'reset'
 * handleResumed: `Function` reference
     - Called whenever the playerclock is resumed (either manually or from changing turns)
-* handleTenCount: this.handleTenCount,
+* handleTenCount: `Function` reference
     - Called when there becomes 10 seconds (or less) left in the phase/main time or period time. If a `periodTime` or phase/main time is set to say 5 seconds, it will still be called when that period/phase starts with 5 seconds.
-* handleUpdated: handleUpdated
+* handleUpdated: `Function` reference
     - Only useful for the split player clocks hack (called whenever a playerclock is updated)
 
 ___
