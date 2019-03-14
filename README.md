@@ -37,7 +37,7 @@ Callback events, including:
 
 CSS classes:
 * Style the game clock or each individual player clock
-* Style each player clock accordiong to the clcok state: expired, running, paused, init.
+* Style each player clock according to the clock state: expired, running, paused, init.
 
 ## Documentation
 [Please read the docs by clicking here.](docs/README.md)

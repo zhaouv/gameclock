@@ -679,13 +679,17 @@ class gameclock extends Component {
             prevPlayer: nstate.prevPlayer,
             waitMadeMove: nstate.waitMadeMove
         })
-        this.props.handleUpdated()
+        if (this.props != null && this.props.handleUpdated != null) {
+            this.props.handleUpdated()
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        this.props.handleUpdated()
         let nstate = this.state
         let nprops = this.props
+        if (nprops != null && nprops.handleUpdated != null) {
+            nprops.handleUpdated()
+        }
         if (nstate.prevNumMoves < nstate.numMoves && !nstate.waitMadeMove) {
             // in case multiple moves made faster than update
             nstate = helper.deepCopyIfSame({a: nstate, b: this.state})

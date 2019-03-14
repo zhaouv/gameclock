@@ -51,6 +51,8 @@ Will display any time up to 9007199254740992 seconds (2^52 seconds, or ~286 mill
 
 Preact has a limitation of not being able to return document fragments (at least as of yet), so at the moment all player clocks are bundled inside a div in gameclock. If this changes, in the future we may be able to simply return an array of document fragments (each containing a player clock). For now this is not possible, and to separate them requires a bit of javascript 'hacking' (see the demo's split player clock's code).
 
+Generally, you must reset the clock after initializing it to make certain the time settings are correct. See the section on [Initializing the Clock](#initializing-the-clock).
+
 ## Clock display
 The clock displays in order of:
 
@@ -59,6 +61,12 @@ The clock displays in order of:
 The time displayed is in `hours:minutes:seconds{:fractional-seconds}` where fractional seconds means the seconds can be shown with up to 4 decimal places. The time shown is always truncated to however many decimal places shown (not rounded). So, 0.04959 seconds will shown as `0` or `0.0` or `0.04` or `0.049` or `0.0495` for 0-4 decimal places shown, respectively.
 
 Any of the fields except the time can be configured to displayed or not. The delay time is only (and always) shown in the 'delay' `clockMode`
+
+## Initializing the Clock
+Before initializing the clock, you should first pause the clock in case it is running. Then initialize the clock by setting the `mode` to 'init' and the `numMoves` to `0`. After initializing the clock you should then reset the clock by setting the `mode` to 'reset'; the reason for this is if the `initialTime` has not changed since the last initialization, the gameclock won't be able to distinguish that it has been initialized a second time. In general, you should always follow an 'init' with a 'reset'; see the next section for an example of the exception of this rule.
+
+### The difference between mode 'init' and 'reset'
+The `mode` 'init' and 'reset' behave slightly differently. The `mode` 'init' allows the parent component of gameclock to pass `initialTime` without needing to differentiate whether `initialTime` changed. For example, if the user is given an option to change the time setup of an already initialized clock, the parent component can first pause and then 'init' the gameclock with `initialTime` without checking whether `initialTime` has changed: if it hasn't changed the gameclock won't reset the clock, but if it has changed the gameclock will reset the clock. The `mode` 'reset' is similar to a forced update where we reset the clock to whatever the `initialTime` is currently set to, whether `initialTime` has changed or not.
 
 ___
 
@@ -89,7 +97,7 @@ ___
 
 ## Styling
 
-There are many variables that can be overriden to customize the look. For instance, changing the .gameclock variable `--gameclock-display-direction` to `row` will change the clocks from vertically stacked to horizontally stacked.
+There are many variables that can be overridden to customize the look. For instance, changing the .gameclock variable `--gameclock-display-direction` to `row` will change the clocks from vertically stacked to horizontally stacked.
 
 Please see the [gameclock.css](../css/gameclock.css) for ideas.
 
@@ -156,7 +164,7 @@ The following list contains all props for the `gameclock` component, grouped acc
 * handleElapsedMainTime: `Function` reference
     - Called when the main time ends, and when a phase ends in `clockMode` 'incrementBefore', 'incrementAfter' and 'delay' - this is when 'mainTime' 'secondaryTime' or 'tertiaryTime' ends.
 * handleElapsedPeriod: `Function` reference
-    - Called when: in `clockMode` 'byo-yomi' when a period ends, or `clockmode` 'delay` when the delay ends.
+    - Called when: in `clockMode` 'byo-yomi' when a period ends, or `clockmode` 'delay' when the delay ends.
 * handleInit: `Function` reference
     - called automatically whenever player clocks are initialized (from changing the initialTime or other core settings)
 * handleMadeMove: `Function` reference
@@ -180,7 +188,7 @@ In only the increment/delay modes, phase refers to in the prop `initialTime` eit
 
 * 'absolutePerPlayer' - Each player is given `mainTime` before their time expires.
 * 'byo-yomi' - Each player is given main time. When the main time runs out they enter byo-yomi/overtime, where they have `periodTime` to make `periodMoves` before the period elapses, of which they have `numPeriods` before their time expires.
-* 'delay' - Each player is given main time and optioanlly secondary time and optionally a tertiary time (three phases of time). When each player's turn comes up they have `periodTime` before their clock's (phase) time starts running. If the player makes `periodMoves` for that phase then the time left for that phase's main time is spilled over (added) to the next phases available time.  When one phases' time runs out, the clock advances to the next phase. The clock expires when all phases' time expire.
+* 'delay' - Each player is given main time and optionally secondary time and optionally a tertiary time (three phases of time). When each player's turn comes up they have `periodTime` before their clock's (phase) time starts running. If the player makes `periodMoves` for that phase then the time left for that phase's main time is spilled over (added) to the next phases available time.  When one phases' time runs out, the clock advances to the next phase. The clock expires when all phases' time expire.
 * 'incrementAfter' - Immediately after each player makes a move, `periodTime` is added to that player's clock. `periodTime` is also added to each player's clock on initialization/reset. Otherwise it operates similarly to 'delay'.
 * 'incrementBefore' - Immediately before each player's turn, `periodTime` is added to that player's clock. Otherwise it operates similarly to 'delay'.
 * 'hourglass' - Each player starts with `mainTime` and the active time elapsed during that player's turn is then given to the next player. For example, if you use five seconds of time to make a move, your opponent will gain five seconds thinking time for the next move.
@@ -195,11 +203,11 @@ ___
 * playerID: `String` - a short string, all lowercase, unique to each player (should have no spaces or special characters since it will be used as in the CSS classnames), i.e. 'b', or 'w', or '1' or '2' -- if its a number it still must be represented as a string.
 * playerText: `String` or `null` - an optional short string to display at the beginning of each player clock display, i.e. 'Black' or 'White'
 * mainTime: `Float` the main time in seconds for all modes, set to 0 if you do not want a main time, i.e. for byo-yomi you may not want any main time.
-* mainMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the alotted time before advancing to the secondaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
+* mainMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the allotted time before advancing to the secondaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
 * secondaryTime: `Float` the second phase time in seconds, only used for `clockMode` delay and increment; set to `0` if you do not want a second phase of time or are using a different `clockMode`.
-* secondaryMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the alotted time before advancing to the tertiaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
+* secondaryMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the allotted time before advancing to the tertiaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
 * tertiaryTime: `Float` the second phase time in seconds, only used for `clockMode` delay and increment; set to `0` if you do not want a second phase of time or are using a different `clockMode`.
-* tertiaryMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the alotted time before advancing to the tertiaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
+* tertiaryMoves: `Integer` for `clockMode` delay and increment, the number of moves that must be made within the allotted time before advancing to the tertiaryTime phase. If all remaining moves must be made within this phase (this is the last phase) or if you don't need this since you are using a different clockMode set this to `0`.
 * numPeriods: `Integer` for `clockMode` byo-yomi only. The number of byo-yomi periods that must elapse before the player's time expires. Set this to '0' if you are not using byo-yomi.
 * periodTime: `Float`
     - for `clockMode` byo-yomi, this corresponds to the amount of time in each period
@@ -218,7 +226,7 @@ You can also change the current player's turn the same way by pausing (setting `
 ___
 
 ## Callback events
-With the exception of `handleAdjust` (which additionally returns an `adjustmentEventID`) and handleUpdated (which returns nothing), all other events return an object with the following keys:
+With the exception of `handleAdjust` (which additionally returns an `adjustEventID`) and `handleUpdated` (which returns nothing), all other events return an object with the following keys:
 * 'playerID' - a `String` that refers to symbolically the player whose turn just ended from making a move, corresponding to the `playerID` for the player's clock in `initialTime`
 * 'clock' - an `Object` that is the playerclock state, see the [clock state](#clock-state) section
 * 'activePlayers' - an `Array` of `String`. The string is a corresponding `playerID`. Only contains clocks that are not expired (when a clock is expired, it is removed from the array). The order shows the turns for each player clock, i.e., the first in the array is either that player's current turn or will soon be their turn, and depends on the event type and player clock states:

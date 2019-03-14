@@ -1938,7 +1938,9 @@ class playerclock extends Component {
         let nstate = this.state
         let nprops = this.props
 
-        nprops.handleUpdated()
+        if (nprops != null && nprops.handleUpdated != null) {
+            nprops.handleUpdated()
+        }
         if (nprops != null && nprops.playerID != null &&
             nstate != null) {
 
