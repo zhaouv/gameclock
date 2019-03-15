@@ -1455,7 +1455,7 @@ class playerclock extends Component {
 
     resetTimer({nstate = null, nprops = null} = {}) {
         // pause timer first to stop stick
-        this.pauseTimer()
+        this.pauseTimer({nstate: nstate, nprops: nprops})
         if (this.adjHybridIC({
             action: 'reset',
             nstate: nstate,
@@ -1896,7 +1896,7 @@ class playerclock extends Component {
 
     componentDidMount() {
         let nprops = this.props
-        let nstate = {}
+        let nstate = this.state
         this.initTimer({nprops: nprops, nstate: nstate})
         if (nprops != null && nprops.playerID != null &&
             nstate != null) {
