@@ -963,11 +963,13 @@ class App extends Component {
                                 },
                                 [
                                     'incrElapsedMainTime',
+                                    'incrElapsedMoveTime',
                                     'incrElapsedNumPeriods',
                                     'incrElapsedPeriodMoves',
                                     'incrElapsedPeriodTime',
                                     'incrElapsedTotalTime',
                                     'setElapsedMainTime',
+                                    'setElapsedMoveTime',
                                     'setElapsedNumPeriods',
                                     'setElapsedPeriodMoves',
                                     'setElapsedPeriodTime',

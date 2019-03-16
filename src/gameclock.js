@@ -412,7 +412,7 @@ class gameclock extends Component {
     }
 
     handleAdjust({playerID = null, clock = null, eventID = null,
-        byHourglass = false, resetExpired = false} = {}) {
+        byHourglass = false, resetExpired = false, setExpired = false} = {}) {
         if (resetExpired) {
             // gave back time to a clock that was expired, and is now no longer expired
             // insert clock back into activePlayers in order of initialTime
@@ -447,6 +447,29 @@ class gameclock extends Component {
                         insertIndex++
                     }
                     activePlayers.splice(insertIndex, 0, playerID)
+                    ret = {activePlayers: activePlayers}
+                } else {
+                    ret = {}
+                }
+                if (props.handleAdjust != null && byHourglass === false) {
+                    props.handleAdjust({
+                        clock: clock,
+                        playerID: playerID,
+                        adjustEventID: eventID,
+                        activePlayers: activePlayers
+                    })
+                }
+                return ret
+            })
+        } else if (setExpired) {
+            // deducted time from a clock that wasn't expired, but now is expired
+            // remove clock from activePlayers
+            this.setState((state, props) => {
+                let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
+                let ret
+                let playerIndex = state.activePlayers.indexOf(playerID)
+                if (playerIndex !== -1) {
+                    activePlayers.splice(playerIndex, 1)
                     ret = {activePlayers: activePlayers}
                 } else {
                     ret = {}

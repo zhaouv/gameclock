@@ -160,7 +160,7 @@ The following list contains all props for the `gameclock` component, grouped acc
 
 ### Callback event handlers
 * handleAdjust: `Function` reference
-    - Called after a manual adjustment has been made. See the [callback events](#callback-events) section
+    - Called after a manual adjustment has been made. See the [callback events](#callback-events) section. With the exception of this event and `handleUpdated`, other clock events are suppressed when solely adjusting the clock.
 * handleElapsedMainTime: `Function` reference
     - Called when the main time ends, and when a phase ends in `clockMode` 'incrementBefore', 'incrementAfter' and 'delay' - this is when 'mainTime' 'secondaryTime' or 'tertiaryTime' ends.
 * handleElapsedPeriod: `Function` reference
@@ -243,11 +243,11 @@ Most events return an object called `clock` that is a single playerclock's state
 * elapsedMainTime: `Float`
     - The # of seconds elapsed for the current main time or the current phase for `clockMode` delay and increment.
 * elapsedMoveTime: `Float`
-    - The # of seconds elapsed since the start of a player's turn and is reset ONLY if the player makes a move when their clock is running. In other words, for example, if player Black's clock has been running for 5 minutes, the gameclock is then manually paused, then the `numMoves` is incremented to switch to the player White, the gameclock is manually resumed, and then White makes a move and so it becomes Black's turn again, the elapsedMoveTime continues to increment from where it left off for Black at 5 minutes. If you want different behavior, then you need to manually adjust the clock state, see the [Adjusting the clock during play](#adjusting-the-clock-during-play) section.
+    - The # of seconds elapsed since the start of a player's turn and is reset ONLY if the player makes a move when their clock is running. This is not used in anyway to derive the clock state (information for events only). In other words, for example, if player Black's clock has been running for 5 minutes, the gameclock is then manually paused, then the `numMoves` is incremented to switch to the player White, the gameclock is manually resumed, and then White makes a move and so it becomes Black's turn again, the elapsedMoveTime continues to increment from where it left off for Black at 5 minutes. If you want different behavior, then you need to manually adjust the clock state, see the [Adjusting the clock during play](#adjusting-the-clock-during-play) section.
 * elapsedNumPeriods: `Integer`
     - For `clockMode` byo-yomi it is the total number of periods elapsed. For `clockMode` delay or increment
 * elapsedTotalTime: `Float`
-    - The total time elapsed for the current player clock (including all periods/phases/delays/increments etc.), i.e. the time the player spent thinking
+    - The total time elapsed for the current player clock (including all periods/phases/delays/increments etc.), i.e. the time the player spent thinking. This is not used in anyway to derive the clock state (information for events only).
 * elapsedPeriodMoves: `Integer`
     - The # of moves made by a single player in the current period or phase. Note: in increment and delay `clockMode` when this # exceeds the `initialTime` `periodMoves` it will only show on the clock display up to the `initialTime` `periodMoves` and not the actual, since in these modes for chess we ostensibly only care if we reach the required number of moves for that phase, not if we go beyond it for the last phase.
 * elapsedPeriodTime: `Float`
@@ -269,15 +269,17 @@ Most events return an object called `clock` that is a single playerclock's state
 ___
 
 ## Adjusting the clock during play
-You can adjust any player clock state during play, by first pausing and then simultaneously setting the following props. When you receive the callback through `handleAdjust` corresponding to the `eventID` you are waiting for you can then safely resume.
+You can adjust any player clock state during play, by first pausing and then simultaneously setting the following props. When you receive the callback through `handleAdjust` corresponding to the `eventID` you are waiting for you can then safely resume. Note: other than `handleAdjust` and `handleUpdated`, other clock events suppressed during when the clock is adjusted. Note also that `didTenCount` is reset whenever adjusting the clock.
 
 * adjustAction - setElapsed... sets the value to `adjustVal` and incrElapsed... adds the current value by `adjustVal`. It's possible to have negative values for the time. See the [clock state](#clock-state) section for info about what these mean.
     - 'incrElapsedMainTime'
+    - 'incrElapsedMoveTime'
     - 'incrElapsedNumPeriods'
     - 'incrElapsedPeriodMoves'
     - 'incrElapsedPeriodTime'
     - 'incrElapsedTotalTime'
     - 'setElapsedMainTime'
+    - 'setElapsedMoveTime'
     - 'setElapsedNumPeriods'
     - 'setElapsedPeriodMoves'
     - 'setElapsedPeriodTime'
