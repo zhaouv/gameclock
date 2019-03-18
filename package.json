@@ -1,7 +1,7 @@
 {
   "name": "@dbosst/gameclock",
   "description": "a digital timer for games, such as go and chess",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "dbosst",
   "main": "./src/main.js",
   "license": "MIT",
