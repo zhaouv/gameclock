@@ -174,6 +174,12 @@ class playerclock extends Component {
                     nprops: nprops
                 })
                 this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
                     action: 'incrElapsedMainTime',
                     arg: elapsedRemainder,
                     nstate: nstate,
@@ -190,6 +196,12 @@ class playerclock extends Component {
                 // will not use up main time
                 this.adjHybridIC({
                     action: 'incrElapsedTotalTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
                     arg: elapsed,
                     nstate: nstate,
                     nprops: nprops
@@ -212,6 +224,12 @@ class playerclock extends Component {
                     nprops: nprops
                 })
                 this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
                     action: 'incrElapsedMainTime',
                     arg: elapsedRemainder,
                     nstate: nstate,
@@ -222,6 +240,12 @@ class playerclock extends Component {
                 elapsedRemainder = initMainTime - hclk.elapsedMainTime
                 this.adjHybridIC({
                     action: 'incrElapsedTotalTime',
+                    arg: elapsedRemainder,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
                     arg: elapsedRemainder,
                     nstate: nstate,
                     nprops: nprops
@@ -244,6 +268,12 @@ class playerclock extends Component {
                     nprops: nprops
                 })
                 this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
                     action: 'incrElapsedMainTime',
                     arg: elapsed,
                     nstate: nstate,
@@ -253,6 +283,12 @@ class playerclock extends Component {
             elapsedRemainder = elapsed - elapsedRemainder
             this.adjHybridIC({
                 action: 'incrElapsedTotalTime',
+                arg: elapsedRemainder,
+                nstate: nstate,
+                nprops: nprops
+            })
+            this.adjHybridIC({
+                action: 'incrElapsedMoveTime',
                 arg: elapsedRemainder,
                 nstate: nstate,
                 nprops: nprops
@@ -351,6 +387,12 @@ class playerclock extends Component {
                         nprops: nprops
                     })
                     this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
+                        arg: diff,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
                         action: 'incrElapsedMainTime',
                         arg: diff,
                         nstate: nstate,
@@ -398,6 +440,12 @@ class playerclock extends Component {
                     // will not use up phase time
                     this.adjHybridIC({
                         action: 'incrElapsedTotalTime',
+                        arg: elapsedRemainder,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
                         arg: elapsedRemainder,
                         nstate: nstate,
                         nprops: nprops
@@ -479,15 +527,22 @@ class playerclock extends Component {
                     elapsedRemainder = elapsed
                 } else if ((hclk.elapsedPeriodTime + elapsed) >= initPeriodTime) {
                     // delay time will elapse now
+                    let diff = (initPeriodTime - hclk.elapsedPeriodTime)
                     this.adjHybridIC({
                         action: 'incrElapsedTotalTime',
-                        arg: (initPeriodTime - hclk.elapsedPeriodTime),
+                        arg: diff,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
+                        arg: diff,
                         nstate: nstate,
                         nprops: nprops
                     })
                     this.adjHybridIC({
                         action: 'incrElapsedPeriodTime',
-                        arg: (initPeriodTime - hclk.elapsedPeriodTime),
+                        arg: diff,
                         nstate: nstate,
                         nprops: nprops
                     })
@@ -498,6 +553,12 @@ class playerclock extends Component {
                     // delay time not elapsed yet
                     this.adjHybridIC({
                         action: 'incrElapsedTotalTime',
+                        arg: elapsed,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
                         arg: elapsed,
                         nstate: nstate,
                         nprops: nprops
@@ -594,6 +655,12 @@ class playerclock extends Component {
                         nprops: nprops
                     })
                     this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
+                        arg: diff,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
                         action: 'incrElapsedMainTime',
                         arg: diff,
                         nstate: nstate,
@@ -641,6 +708,12 @@ class playerclock extends Component {
                     // will not use up phase time
                     this.adjHybridIC({
                         action: 'incrElapsedTotalTime',
+                        arg: elapsedRemainder,
+                        nstate: nstate,
+                        nprops: nprops
+                    })
+                    this.adjHybridIC({
+                        action: 'incrElapsedMoveTime',
                         arg: elapsedRemainder,
                         nstate: nstate,
                         nprops: nprops
@@ -720,9 +793,16 @@ class playerclock extends Component {
                 mainTimeLeft = false
             } else if ((hclk.elapsedMainTime + elapsed) >= initMainTime) {
                 // will use up main time
+                let diff = (initMainTime - hclk.elapsedMainTime)
                 this.adjHybridIC({
                     action: 'incrElapsedTotalTime',
-                    arg: (initMainTime - hclk.elapsedMainTime),
+                    arg: diff,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
+                    arg: diff,
                     nstate: nstate,
                     nprops: nprops
                 })
@@ -740,6 +820,12 @@ class playerclock extends Component {
                 // will not use up main time
                 this.adjHybridIC({
                     action: 'incrElapsedTotalTime',
+                    arg: elapsed,
+                    nstate: nstate,
+                    nprops: nprops
+                })
+                this.adjHybridIC({
+                    action: 'incrElapsedMoveTime',
                     arg: elapsed,
                     nstate: nstate,
                     nprops: nprops
@@ -879,6 +965,12 @@ class playerclock extends Component {
                                     nprops: nprops
                                 })
                                 this.adjHybridIC({
+                                    action: 'incrElapsedMoveTime',
+                                    arg: elapsedRemainder,
+                                    nstate: nstate,
+                                    nprops: nprops
+                                })
+                                this.adjHybridIC({
                                     action: 'incrElapsedPeriodTime',
                                     arg: elapsedRemainder,
                                     nstate: nstate,
@@ -929,10 +1021,16 @@ class playerclock extends Component {
 
         let hclk = nstate
         let initPeriodTime = nprops.initialTime.periodTime
-
+        let diff = (initPeriodTime - hclk.elapsedPeriodTime)
         this.adjHybridIC({
             action: 'incrElapsedTotalTime',
-            arg: (initPeriodTime - hclk.elapsedPeriodTime),
+            arg: diff,
+            nstate: nstate,
+            nprops: nprops
+        })
+        this.adjHybridIC({
+            action: 'incrElapsedMoveTime',
+            arg: diff,
             nstate: nstate,
             nprops: nprops
         })
@@ -962,11 +1060,18 @@ class playerclock extends Component {
         let hclk = nstate
         let initPeriodTime = nprops.initialTime.periodTime
 
-        elapsed -= (initPeriodTime - hclk.elapsedPeriodTime)
+        let diff = (initPeriodTime - hclk.elapsedPeriodTime)
+        elapsed -= diff
 
         this.adjHybridIC({
             action: 'incrElapsedTotalTime',
-            arg: (initPeriodTime - hclk.elapsedPeriodTime),
+            arg: diff,
+            nstate: nstate,
+            nprops: nprops
+        })
+        this.adjHybridIC({
+            action: 'incrElapsedMoveTime',
+            arg: diff,
             nstate: nstate,
             nprops: nprops
         })
@@ -1004,6 +1109,12 @@ class playerclock extends Component {
                 nstate: nstate,
                 nprops: nprops
             })
+            this.adjHybridIC({
+                action: 'incrElapsedMoveTime',
+                arg: elapsed,
+                nstate: nstate,
+                nprops: nprops
+            })
         }
         // reset period clock information
         this.adjHybridIC({
@@ -1033,6 +1144,12 @@ class playerclock extends Component {
         if (!(hclk.resetPeriod === true)) {
             this.adjHybridIC({
                 action: 'incrElapsedTotalTime',
+                arg: elapsed,
+                nstate: nstate,
+                nprops: nprops
+            })
+            this.adjHybridIC({
+                action: 'incrElapsedMoveTime',
                 arg: elapsed,
                 nstate: nstate,
                 nprops: nprops
