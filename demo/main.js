@@ -575,6 +575,10 @@ class App extends Component {
             return null
         }
 
+        if (this.state.numPlayers == null || !(this.state.numPlayers > 0)) {
+            return null
+        }
+
         return Array.from(Array(this.state.numPlayers)).map((e, n) => {
             return h('li', {style: {width: '16em'}},
                 'Player ' + (n + 1),
@@ -685,7 +689,8 @@ class App extends Component {
             // just set a player text to a few spaces and do as below
             h('style', {},
                 playerIcons != null &&
-                initialTime != null && initialTime.map((k,v) =>
+                initialTime != null && initialTime.length > 0 &&
+                initialTime.map((k,v) =>
                     `.playerclock_${gameClockID}_${k.playerID} {
                         background-image: url('${playerIcons.replace(/\\/g, '/')}clock_${gameClockID}_${k.playerID}.svg');
                         background-repeat: no-repeat;
@@ -944,7 +949,8 @@ class App extends Component {
                                 onChange: this.handleOptionChange,
                                 value: 'adjustPlayerID:' + String(this.state.adjustPlayerID),
                                 },
-                                initialTime != null && initialTime.map((k,v) =>
+                                initialTime != null && initialTime.length > 0 &&
+                                initialTime.map((k,v) =>
                                     h('option', {
                                         value: 'adjustPlayerID:' + String(k.playerID)
                                         }, String(k.playerID)
@@ -1107,7 +1113,7 @@ class App extends Component {
                     'Game Clock',
                     h('br', {}),
                     h('br', {}),
-                    initialTime == null ? null :
+                    (initialTime == null || !(initialTime.length > 0)) ? null :
                         initialTime.map((k, i) =>
                             [h('div', {
                                     class: 'targetdiv_playerclock',

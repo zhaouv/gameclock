@@ -54,7 +54,7 @@ class gameclock extends Component {
         // calculate the max width of the player clock (div playerclockinner)
         // this way the clock width won't change after init
 
-        if (props.initialTime == null || props.initialTime.length == 0) {
+        if (props.initialTime == null || !(props.initialTime.length > 0)) {
             return 0
         }
 
@@ -192,7 +192,7 @@ class gameclock extends Component {
     calcFixedNumPeriodsWidth(props) {
         // calculate the max width of only the number of periods
 
-        if (props.initialTime == null || props.initialTime.length == 0) {
+        if (props.initialTime == null || !(props.initialTime.length > 0)) {
             return 0
         }
 
@@ -252,7 +252,7 @@ class gameclock extends Component {
     calcFixedPeriodMovesWidth(props) {
         // calculate the max width of only the number of periods
 
-        if (props.initialTime == null || props.initialTime.length == 0) {
+        if (props.initialTime == null || !(props.initialTime.length > 0)) {
             return 0
         }
 
@@ -310,7 +310,7 @@ class gameclock extends Component {
     calcFixedPeriodWidth(props) {
         // calculate the max width of only the period time
 
-        if (props.initialTime == null || props.initialTime.length == 0) {
+        if (props.initialTime == null || !(props.initialTime.length > 0)) {
             return 0
         }
 
@@ -419,9 +419,11 @@ class gameclock extends Component {
             // always insert after (preserve current active player)
             this.setState((state, props) => {
                 let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
-                let ret
-                if (state.activePlayers.indexOf(playerID) === -1) {
-                    let initTime = props.initialTime
+                let initTime = props.initialTime
+                let ret = {}
+                if (activePlayers != null && activePlayers.length > 0 &&
+                    initTime != null && initTime.length > 0 &&
+                    activePlayers.indexOf(playerID) === -1) {
 
                     let indexOfExpiredPlayer = initTime.reduce((v, item, index, a) => {
                         return (item.playerID === playerID ? index : v)}, -1)
@@ -448,8 +450,6 @@ class gameclock extends Component {
                     }
                     activePlayers.splice(insertIndex, 0, playerID)
                     ret = {activePlayers: activePlayers}
-                } else {
-                    ret = {}
                 }
                 if (props.handleAdjust != null && byHourglass === false) {
                     props.handleAdjust({
@@ -466,13 +466,13 @@ class gameclock extends Component {
             // remove clock from activePlayers
             this.setState((state, props) => {
                 let activePlayers = JSON.parse(JSON.stringify(state.activePlayers))
-                let ret
-                let playerIndex = state.activePlayers.indexOf(playerID)
-                if (playerIndex !== -1) {
-                    activePlayers.splice(playerIndex, 1)
-                    ret = {activePlayers: activePlayers}
-                } else {
-                    ret = {}
+                let ret = {}
+                if (activePlayers != null && activePlayers.length > 0) {
+                    let playerIndex = activePlayers.indexOf(playerID)
+                    if (playerIndex !== -1) {
+                        activePlayers.splice(playerIndex, 1)
+                        ret = {activePlayers: activePlayers}
+                    }
                 }
                 if (props.handleAdjust != null && byHourglass === false) {
                     props.handleAdjust({
@@ -569,10 +569,10 @@ class gameclock extends Component {
 
     handlePlayerClockExpired({playerID = null, clock = null} = {}) {
         // remove player from activePlayers
-        if (this.state.activePlayers == null) {
-            return
-        }
-        if (this.state.activePlayers.indexOf(playerID) === -1) {
+        if (this.state.activePlayers == null ||
+            !(this.state.activePlayers.length > 0) ||
+            this.state.activePlayers.indexOf(playerID) === -1) {
+
             return
         }
         let prevPlayer
@@ -886,7 +886,7 @@ class gameclock extends Component {
             mode = null
         } = this.props
 
-        let haveActive = (activePlayers != null)
+        let haveActive = (activePlayers != null && activePlayers.length > 0)
         let numActive = haveActive ? activePlayers.length : 0
         let haveMinActive = minActiveClocks != null &&
             (minActiveClocks >= 1) &&
