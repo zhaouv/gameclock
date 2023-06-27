@@ -1,3 +1,13 @@
+description of this fork:
+
+make its demo page more useable for phone
+
+[live demo](https://zhaouv.github.io/gameclock/demo/index.html)
+
+old README:
+
+- - -
+
 # gameclock
 
 A preact module for a game clock, supporting an arbitrary number of players.
