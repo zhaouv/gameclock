@@ -4,6 +4,9 @@ make its demo page more useable for phone
 
 [live demo](https://zhaouv.github.io/gameclock/demo/index.html)
 
+countdown sounds from <https://pixabay.com/sound-effects/search/countdown/?pagi=3>  
+which said the sounds are free to use
+
 old README:
 
 - - -
