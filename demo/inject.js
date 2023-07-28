@@ -6,9 +6,22 @@
 globalThis.injectTrigger=()=>{
     console.log('inject trigger run')
 
+    let clickstep = {}
+    clickstep.setup=function () {
+        console.log('setup clickstep '+Math.random())
+        clickstep.audio = document.getElementById("click_step");
+        clickstep.audio.play(); // triger for ios
+        clickstep.audio.pause();
+        clickstep.setup=()=>0
+    }
+    clickstep.play=function () {
+        clickstep.audio.currentTime = 0;
+        clickstep.audio.play();
+        console.log('1 '+Math.random())
+    }
     let countdown = {}
     countdown.setup=function () {
-        console.log('setup '+Math.random())
+        console.log('setup countdown '+Math.random())
         countdown.audio = document.getElementById("countdown_beep");
         countdown.audio.play(); // triger for ios
         countdown.audio.pause();
@@ -46,7 +59,7 @@ globalThis.injectTrigger=()=>{
     app.handleTenCount=()=>{console.log('10 '+Math.random())}
 
     app.setState(
-        {"adjustAction":"setElapsedPeriodTime","adjustEventID":null,"adjustPlayerID":"black","adjustVal":"0","clockMode":"byo-yomi","dispInfoNumPeriods":true,"dispInfoPeriodMoves":false,"dispInfoPlayerText":true,"dispCountElapsedMainTime":false,"dispCountElapsedNumPeriods":false,"dispCountElapsedPeriodMoves":false,"dispCountElapsedPeriodTime":false,"dispFormatMainTimeFSNumDigits":0,"dispFormatMainTimeFSLastNumSecs":10,"dispFormatMainTimeFSUpdateInterval":0.1,"dispFormatPeriodTimeFSNumDigits":0,"dispFormatPeriodTimeFSLastNumSecs":10,"dispFormatPeriodTimeFSUpdateInterval":0.1,"dispOnExpired":"OT","gameClockID":"demo","mode":"reset","minActiveClocks":2,"numMoves":0,"initialTime":[{"playerID":"black","playerText":"   ","mainTime":60,"numPeriods":4,"periodTime":20,"periodMoves":1,"mainMoves":0},{"playerID":"white","playerText":"   ","mainTime":60,"numPeriods":4,"periodTime":20,"periodMoves":1,"mainMoves":0}],"eventLog":"","eventLogEnabled":false,"numPlayers":2,"playerIcons":"../assets/demo/","splitPlayerClocks":true}
+        {"adjustAction":"setElapsedPeriodTime","adjustEventID":null,"adjustPlayerID":"black","adjustVal":"0","clockMode":"byo-yomi","dispInfoNumPeriods":true,"dispInfoPeriodMoves":false,"dispInfoPlayerText":true,"dispCountElapsedMainTime":false,"dispCountElapsedNumPeriods":false,"dispCountElapsedPeriodMoves":false,"dispCountElapsedPeriodTime":false,"dispFormatMainTimeFSNumDigits":0,"dispFormatMainTimeFSLastNumSecs":10,"dispFormatMainTimeFSUpdateInterval":0.1,"dispFormatPeriodTimeFSNumDigits":0,"dispFormatPeriodTimeFSLastNumSecs":10,"dispFormatPeriodTimeFSUpdateInterval":0.1,"dispOnExpired":"OT","gameClockID":"demo","mode":"reset","minActiveClocks":2,"numMoves":0,"initialTime":[{"playerID":"black","playerText":"   ","mainTime":60,"numPeriods":4,"periodTime":60,"periodMoves":1,"mainMoves":0},{"playerID":"white","playerText":"   ","mainTime":60,"numPeriods":4,"periodTime":60,"periodMoves":1,"mainMoves":0}],"eventLog":"","eventLogEnabled":false,"numPlayers":2,"playerIcons":"../assets/demo/","splitPlayerClocks":true}
     )
 
     let injectcsstext =/* css */`
@@ -90,6 +103,7 @@ globalThis.injectTrigger=()=>{
     document.head.insertAdjacentHTML('beforeend','<style id="injectcss">'+injectcsstext+'</style>')
     document.body.insertAdjacentHTML('beforeend','<button class="insertbutton insertbuttonpause" type="button" title="||" onclick="globalThis.insertbuttonpause()">||</button><button class="insertbutton insertbuttonesc" type="button" title="*" onclick="globalThis.insertbuttonesc()">*</button><select name="countdownselect" id="countdownselect"><option value="number">number</option><option value="beep">beep</option><option value="none">none</option></select>')
     globalThis.insertbuttonpause=function () {
+        clickstep.setup()
         countdown.setup()
         if (!Array.from(playerclock_demo_black_M.classList).includes('running') && !Array.from(playerclock_demo_white_M.classList).includes('running')) {
             document.querySelector('[title="Resume"]').click()
@@ -103,6 +117,7 @@ globalThis.injectTrigger=()=>{
     function clickdiv(player01) {
         if (app.state.numMoves%2===player01) {
             countdown.cancel()
+            clickstep.play()
             document.querySelector('[title="Make Move"]').click()
         }
     }
